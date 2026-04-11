@@ -1,0 +1,277 @@
+const { useState } = React;
+
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhcns-Kb9KnS_DFzwrJ8no4y_gYCAzbqQxszdomMduxzm4r_O8kSTvkri1IR1YQfUl/exec';
+
+const productos = [
+  { id: 1, nombre: 'Coca Cola', precio: 2.50, color: 'bg-red-600' },
+  { id: 2, nombre: 'Coca Cola Zero', precio: 2.50, color: 'bg-stone-800' },
+  { id: 3, nombre: 'Fanta Limón', precio: 2.50, color: 'bg-lime-500' },
+  { id: 4, nombre: 'Fanta Naranja', precio: 2.50, color: 'bg-orange-500' },
+  { id: 5, nombre: 'Copa Vino Es Moll', precio: 4.00, color: 'bg-rose-600' },
+  { id: 6, nombre: 'Botella Vino Es Moll', precio: 18.00, color: 'bg-rose-800' },
+  { id: 7, nombre: 'Cerveza Estrella Galicia', precio: 3.00, color: 'bg-amber-500' },
+  { id: 8, nombre: 'Vaso Agua', precio: 0.50, color: 'bg-sky-400' },
+  { id: 9, nombre: 'Botella de Agua', precio: 2.00, color: 'bg-blue-500' },
+];
+
+const formatoPrecio = (precio) => {
+  return precio.toFixed(2).replace('.', ',') + '€';
+};
+
+function App() {
+  const [carrito, setCarrito] = useState([]);
+  const [mostrarPago, setMostrarPago] = useState(false);
+  const [estadoPago, setEstadoPago] = useState('idle');
+  const [metodoPago, setMetodoPago] = useState('');
+
+  const agregarProducto = (producto) => {
+    const existe = carrito.find(item => item.id === producto.id);
+    if (existe) {
+      setCarrito(carrito.map(item =>
+        item.id === producto.id
+          ? { ...item, cantidad: item.cantidad + 1 }
+          : item
+      ));
+    } else {
+      setCarrito([...carrito, { ...producto, cantidad: 1 }]);
+    }
+  };
+
+  const modificarCantidad = (id, delta) => {
+    setCarrito(carrito.map(item => {
+      if (item.id === id) {
+        const nuevaCantidad = item.cantidad + delta;
+        return nuevaCantidad > 0 ? { ...item, cantidad: nuevaCantidad } : item;
+      }
+      return item;
+    }).filter(item => item.cantidad > 0));
+  };
+
+  const eliminarProducto = (id) => {
+    setCarrito(carrito.filter(item => item.id !== id));
+  };
+
+  const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+  const cantidadItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+
+  const generarIdVenta = () => {
+    const ahora = new Date();
+    return 'V' + ahora.getFullYear().toString().slice(-2) + 
+           String(ahora.getMonth() + 1).padStart(2, '0') + 
+           String(ahora.getDate()).padStart(2, '0') + 
+           String(ahora.getHours()).padStart(2, '0') + 
+           String(ahora.getMinutes()).padStart(2, '0') + 
+           String(ahora.getSeconds()).padStart(2, '0');
+  };
+
+  const enviarAGoogleSheets = async (metodo) => {
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString('es-ES');
+    const hora = ahora.toLocaleTimeString('es-ES');
+    const idVenta = generarIdVenta();
+    const metodoPagoTexto = metodo === 'tarjeta' ? 'Tarjeta' : 'Efectivo';
+
+    const datos = carrito.map(item => ({
+      fecha: fecha,
+      hora: hora,
+      producto: item.nombre,
+      cantidad: item.cantidad,
+      precioUnit: formatoPrecio(item.precio),
+      subtotal: formatoPrecio(item.precio * item.cantidad),
+      idVenta: idVenta,
+      metodoPago: metodoPagoTexto,
+      totalVenta: formatoPrecio(total)
+    }));
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datos)
+      });
+      return true;
+    } catch (error) {
+      console.error('Error al enviar:', error);
+      return false;
+    }
+  };
+
+  const procesarPago = async (metodo) => {
+    setMetodoPago(metodo);
+    setEstadoPago('processing');
+
+    const exito = await enviarAGoogleSheets(metodo);
+    
+    if (exito) {
+      setEstadoPago('success');
+      setTimeout(() => {
+        setCarrito([]);
+        setMostrarPago(false);
+        setEstadoPago('idle');
+        setMetodoPago('');
+      }, 2000);
+    } else {
+      setEstadoPago('error');
+    }
+  };
+
+  const cerrarModal = () => {
+    setMostrarPago(false);
+    setEstadoPago('idle');
+    setMetodoPago('');
+  };
+
+  return (
+    React.createElement('div', { className: "min-h-screen bg-gray-100 flex flex-col" },
+      // Header
+      React.createElement('header', { className: "bg-indigo-600 text-white p-4 shadow-lg" },
+        React.createElement('div', { className: "flex items-center justify-between" },
+          React.createElement('h1', { className: "text-2xl font-bold" }, "🧀 Hort Sant Patrici"),
+          React.createElement('div', { className: "flex items-center gap-2 bg-indigo-700 px-4 py-2 rounded-lg" },
+            React.createElement('span', { className: "text-2xl" }, "🛒"),
+            React.createElement('span', { className: "text-xl font-semibold" }, cantidadItems + " items")
+          )
+        )
+      ),
+
+      React.createElement('div', { className: "flex flex-1 overflow-hidden" },
+        // Productos
+        React.createElement('main', { className: "flex-1 p-4 overflow-y-auto" },
+          React.createElement('h2', { className: "text-xl font-semibold text-gray-700 mb-4" }, "Productos"),
+          React.createElement('div', { className: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" },
+            productos.map(producto =>
+              React.createElement('button', {
+                key: producto.id,
+                onClick: () => agregarProducto(producto),
+                className: producto.color + " text-white p-4 rounded-xl shadow-lg hover:scale-105 transition-transform active:scale-95 flex flex-col items-center justify-center min-h-28"
+              },
+                React.createElement('span', { className: "text-base font-bold text-center leading-tight" }, producto.nombre),
+                React.createElement('span', { className: "text-2xl font-bold mt-2" }, formatoPrecio(producto.precio))
+              )
+            )
+          )
+        ),
+
+        // Carrito
+        React.createElement('aside', { className: "w-80 bg-white shadow-xl flex flex-col" },
+          React.createElement('div', { className: "p-4 bg-gray-50 border-b" },
+            React.createElement('h2', { className: "text-xl font-semibold text-gray-700" }, "🛒 Carrito")
+          ),
+          
+          React.createElement('div', { className: "flex-1 overflow-y-auto p-4" },
+            carrito.length === 0 ?
+              React.createElement('p', { className: "text-gray-400 text-center py-8" }, "El carrito está vacío") :
+              React.createElement('div', { className: "space-y-3" },
+                carrito.map(item =>
+                  React.createElement('div', { key: item.id, className: "bg-gray-50 rounded-lg p-3 flex items-center gap-3" },
+                    React.createElement('div', { className: item.color + " w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xs text-center p-1" },
+                      item.nombre.split(' ').slice(0, 2).join(' ')
+                    ),
+                    React.createElement('div', { className: "flex-1" },
+                      React.createElement('p', { className: "font-medium text-gray-800 text-sm" }, item.nombre),
+                      React.createElement('p', { className: "text-gray-500 text-sm" }, formatoPrecio(item.precio * item.cantidad))
+                    ),
+                    React.createElement('div', { className: "flex items-center gap-1" },
+                      React.createElement('button', {
+                        onClick: () => modificarCantidad(item.id, -1),
+                        className: "w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 text-lg font-bold"
+                      }, "−"),
+                      React.createElement('span', { className: "w-6 text-center font-semibold text-sm" }, item.cantidad),
+                      React.createElement('button', {
+                        onClick: () => modificarCantidad(item.id, 1),
+                        className: "w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 text-lg font-bold"
+                      }, "+"),
+                      React.createElement('button', {
+                        onClick: () => eliminarProducto(item.id),
+                        className: "w-8 h-8 bg-red-100 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 ml-1 text-lg"
+                      }, "🗑")
+                    )
+                  )
+                )
+              )
+          ),
+
+          // Total y botón de pago
+          React.createElement('div', { className: "p-4 border-t bg-gray-50" },
+            React.createElement('div', { className: "flex justify-between items-center mb-4" },
+              React.createElement('span', { className: "text-xl font-semibold text-gray-700" }, "Total:"),
+              React.createElement('span', { className: "text-3xl font-bold text-indigo-600" }, formatoPrecio(total))
+            ),
+            React.createElement('button', {
+              onClick: () => setMostrarPago(true),
+              disabled: carrito.length === 0,
+              className: "w-full bg-indigo-600 text-white py-4 rounded-xl text-xl font-bold hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            }, "💳 Cobrar")
+          )
+        )
+      ),
+
+      // Modal de Pago
+      mostrarPago && React.createElement('div', { className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" },
+        React.createElement('div', { className: "bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" },
+          estadoPago === 'idle' && React.createElement(React.Fragment, null,
+            React.createElement('div', { className: "p-6 bg-indigo-600 text-white flex justify-between items-center" },
+              React.createElement('h3', { className: "text-2xl font-bold" }, "Método de Pago"),
+              React.createElement('button', {
+                onClick: cerrarModal,
+                className: "w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center hover:bg-indigo-800 text-2xl"
+              }, "✕")
+            ),
+            React.createElement('div', { className: "p-6" },
+              React.createElement('div', { className: "text-center mb-6" },
+                React.createElement('p', { className: "text-gray-500" }, "Total a cobrar"),
+                React.createElement('p', { className: "text-4xl font-bold text-indigo-600" }, formatoPrecio(total))
+              ),
+              React.createElement('div', { className: "space-y-4" },
+                React.createElement('button', {
+                  onClick: () => procesarPago('tarjeta'),
+                  className: "w-full bg-blue-500 text-white py-6 rounded-xl text-xl font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-4"
+                }, "💳 Pago con Tarjeta"),
+                React.createElement('button', {
+                  onClick: () => procesarPago('efectivo'),
+                  className: "w-full bg-green-500 text-white py-6 rounded-xl text-xl font-bold hover:bg-green-600 transition-colors flex items-center justify-center gap-4"
+                }, "💵 Pago en Efectivo")
+              )
+            )
+          ),
+
+          estadoPago === 'processing' && React.createElement('div', { className: "p-12 text-center" },
+            React.createElement('div', { className: "text-6xl mb-6 animate-spin" }, "⏳"),
+            React.createElement('h3', { className: "text-xl font-bold text-gray-800" }, "Procesando pago..."),
+            React.createElement('p', { className: "text-gray-500 mt-2" }, "Guardando en Google Sheets")
+          ),
+
+          estadoPago === 'success' && React.createElement('div', { className: "p-12 text-center" },
+            React.createElement('div', { className: "text-6xl mb-6" }, "✅"),
+            React.createElement('h3', { className: "text-2xl font-bold text-gray-800 mb-2" }, "¡Pago Completado!"),
+            React.createElement('p', { className: "text-gray-500" },
+              (metodoPago === 'tarjeta' ? 'Pago con tarjeta' : 'Pago en efectivo') + " registrado"
+            ),
+            React.createElement('p', { className: "text-3xl font-bold text-green-500 mt-4" }, formatoPrecio(total))
+          ),
+
+          estadoPago === 'error' && React.createElement('div', { className: "p-12 text-center" },
+            React.createElement('div', { className: "text-6xl mb-6" }, "❌"),
+            React.createElement('h3', { className: "text-2xl font-bold text-gray-800 mb-2" }, "Error al guardar"),
+            React.createElement('p', { className: "text-gray-500" }, "No se pudo conectar con Google Sheets"),
+            React.createElement('div', { className: "mt-6 space-y-3" },
+              React.createElement('button', {
+                onClick: () => procesarPago(metodoPago),
+                className: "w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700"
+              }, "Reintentar"),
+              React.createElement('button', {
+                onClick: cerrarModal,
+                className: "w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-300"
+              }, "Cancelar")
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
