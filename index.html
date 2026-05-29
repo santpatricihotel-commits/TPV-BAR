@@ -4,347 +4,452 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TPV - Sant Patrici Menorca</title>
+<!-- Librería para generar QR Veri*Factu -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: #f0f2f5; height: 100vh; overflow: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { background: #f0f2f5; height: 100vh; overflow: hidden; }
 
-    .container {
-        display: grid;
-        grid-template-columns: 1fr 400px;
-        height: 100vh;
-        gap: 10px;
-        padding: 10px;
-    }
+.container {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    gap: 10px;
+    padding: 10px;
+}
 
-    .header {
-        grid-column: 1 / -1;
-        background: linear-gradient(135deg, #0f6b5e, #1a8b7a);
-        color: white;
-        padding: 12px 25px;
-        border-radius: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+/* ===== HEADER ===== */
+.header {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #0f6b5e, #1a8b7a);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.header-logo { display: flex; align-items: center; gap: 12px; }
+.header-logo svg { height: 50px; }
+.header h1 { font-size: 18px; }
+.header-acciones { display: flex; gap: 8px; }
+.header-btn {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.header-btn:hover { background: rgba(255,255,255,0.3); }
+.header-info { font-size: 12px; text-align: right; }
 
-    .header-logo { display: flex; align-items: center; gap: 12px; }
-    .header-logo svg { height: 50px; width: auto; }
-    .header h1 { font-size: 20px; }
-    .header .info { font-size: 13px; text-align: right; }
+/* ===== ZONA PRINCIPAL ===== */
+.zona-principal {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
-    .productos-zona {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        overflow-y: auto;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+/* ===== MESAS ===== */
+.titulo-zona {
+    font-size: 18px;
+    color: #0f6b5e;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8f5f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.btn-volver {
+    padding: 6px 12px;
+    background: #0f6b5e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+}
+.btn-volver:hover { background: #0a4a40; }
 
-    .categorias {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 15px;
-        flex-wrap: wrap;
-    }
+.mesas-grupo { margin-bottom: 20px; }
+.mesas-grupo h3 { color: #555; font-size: 14px; margin-bottom: 10px; }
+.mesas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+}
+.mesa-card {
+    aspect-ratio: 1;
+    border: 2px solid #ccc;
+    background: #f9f9f9;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    text-align: center;
+    padding: 8px;
+}
+.mesa-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.mesa-card.libre { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
+.mesa-card.ocupada { border-color: #ff9800; background: #fff3e0; color: #e65100; }
+.mesa-card .mesa-num { font-size: 22px; font-weight: bold; }
+.mesa-card .mesa-info { font-size: 11px; margin-top: 4px; }
+.mesa-card .mesa-total { font-size: 14px; font-weight: bold; margin-top: 4px; }
 
-    .categoria-btn {
-        padding: 7px 14px;
-        border: 2px solid #0f6b5e;
-        background: white;
-        color: #0f6b5e;
-        border-radius: 20px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 13px;
-        transition: all 0.2s;
-    }
+/* ===== PRODUCTOS ===== */
+.categorias {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+.categoria-btn {
+    padding: 7px 14px;
+    border: 2px solid #0f6b5e;
+    background: white;
+    color: #0f6b5e;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.categoria-btn:hover, .categoria-btn.activa { background: #0f6b5e; color: white; }
 
-    .categoria-btn:hover, .categoria-btn.activa {
-        background: #0f6b5e;
-        color: white;
-    }
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+.producto-card {
+    background: #fafafa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.producto-card:hover {
+    border-color: #0f6b5e;
+    background: #e8f5f1;
+    transform: translateY(-2px);
+}
+.producto-nombre { font-weight: bold; font-size: 12px; color: #333; margin-bottom: 6px; min-height: 32px; }
+.producto-precio { color: #0f6b5e; font-size: 16px; font-weight: bold; }
 
-    .productos-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
-    }
+/* ===== TICKET ===== */
+.ticket-zona {
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.ticket-header {
+    background: #0a4a40;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 15px;
+}
+.ticket-mesa-actual {
+    background: #ff9800;
+    color: white;
+    padding: 6px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 13px;
+}
+.ticket-items { flex: 1; overflow-y: auto; padding: 10px; }
+.ticket-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+}
+.item-cantidad { display: flex; align-items: center; gap: 4px; }
+.btn-cantidad {
+    background: #e0e0e0;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-cantidad:hover { background: #bdbdbd; }
+.item-cantidad span { min-width: 24px; text-align: center; font-weight: bold; }
+.item-nombre { font-weight: bold; color: #333; font-size: 12px; }
+.item-precio { color: #666; font-size: 11px; }
+.item-total { font-weight: bold; color: #0f6b5e; font-size: 14px; }
+.btn-eliminar {
+    background: #ef5350;
+    color: white;
+    border: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 4px;
+}
+.ticket-vacio { text-align: center; color: #999; padding: 40px 20px; font-style: italic; }
+.ticket-totales { background: #f5f5f5; padding: 10px 15px; border-top: 2px solid #ddd; }
+.totales-fila { display: flex; justify-content: space-between; font-size: 12px; padding: 1px 0; color: #555; }
+.total-final {
+    display: flex;
+    justify-content: space-between;
+    font-size: 22px;
+    font-weight: bold;
+    color: #0f6b5e;
+    padding: 6px 0 4px 0;
+    border-top: 2px dashed #999;
+    margin-top: 4px;
+}
 
-    .producto-card {
-        background: #fafafa;
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-align: center;
-    }
+.acciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 8px;
+    background: #fafafa;
+}
+.acciones-row { display: contents; }
+.btn-accion {
+    padding: 10px 6px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+.btn-cancelar { background: #ef5350; color: white; }
+.btn-cancelar:hover { background: #d32f2f; }
+.btn-guardar { background: #2196f3; color: white; }
+.btn-guardar:hover { background: #1565c0; }
+.btn-prefactura { background: #757575; color: white; }
+.btn-prefactura:hover { background: #424242; }
+.btn-cobrar { background: #0f6b5e; color: white; font-size: 14px; grid-column: 1 / -1; padding: 12px; }
+.btn-cobrar:hover { background: #0a4a40; }
+.btn-cobrar:disabled, .btn-accion:disabled { background: #bdbdbd !important; cursor: not-allowed; }
 
-    .producto-card:hover {
-        border-color: #0f6b5e;
-        background: #e8f5f1;
-        transform: translateY(-2px);
-    }
+/* ===== MODAL ===== */
+.modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-overlay.activo { display: flex; }
+.modal {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    width: 500px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-grande { width: 700px; }
+.modal h2 { color: #0f6b5e; margin-bottom: 15px; text-align: center; }
+.modal-total {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #0f6b5e;
+    padding: 15px;
+    background: #e8f5f1;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.pago-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.pago-btn {
+    padding: 18px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+.pago-btn:hover, .pago-btn.activo { border-color: #0f6b5e; background: #e8f5f1; color: #0f6b5e; }
+.modal-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    .producto-nombre {
-        font-weight: bold;
-        font-size: 12px;
-        color: #333;
-        margin-bottom: 6px;
-        min-height: 32px;
-    }
+/* ===== CIERRE DE CAJA ===== */
+.cierre-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+.cierre-stat strong { color: #0f6b5e; font-size: 16px; }
+.cierre-section { margin: 15px 0; }
+.cierre-section h3 { color: #0a4a40; margin-bottom: 8px; font-size: 14px; }
+.cierre-total-grande {
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #0f6b5e;
+    padding: 20px;
+    background: #e8f5f1;
+    border-radius: 10px;
+    margin: 15px 0;
+}
 
-    .producto-precio { color: #0f6b5e; font-size: 16px; font-weight: bold; }
-    .producto-iva { font-size: 10px; color: #666; margin-top: 4px; }
+/* ===== TICKETS ABIERTOS LIST ===== */
+.ticket-abierto-card {
+    border: 2px solid #ff9800;
+    background: #fff3e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.ticket-abierto-card:hover { background: #ffe0b2; }
 
-    .ticket-zona {
-        background: white;
-        border-radius: 10px;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-
-    .ticket-header {
-        background: #0a4a40;
-        color: white;
-        padding: 12px;
-        text-align: center;
-        font-weight: bold;
-        font-size: 15px;
-    }
-
-    .ticket-items { flex: 1; overflow-y: auto; padding: 10px; }
-
-    .ticket-item {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 8px;
-        padding: 8px;
-        border-bottom: 1px solid #eee;
-        align-items: center;
-    }
-
-    .item-cantidad { display: flex; align-items: center; gap: 4px; }
-    .btn-cantidad {
-        background: #e0e0e0;
-        border: none;
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    .btn-cantidad:hover { background: #bdbdbd; }
-    .item-cantidad span { min-width: 24px; text-align: center; font-weight: bold; }
-    .item-info { font-size: 12px; }
-    .item-nombre { font-weight: bold; color: #333; }
-    .item-precio { color: #666; font-size: 11px; }
-    .item-total { font-weight: bold; color: #0f6b5e; font-size: 14px; }
-
-    .btn-eliminar {
-        background: #ef5350;
-        color: white;
-        border: none;
-        width: 22px;
-        height: 22px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-left: 4px;
-    }
-
-    .ticket-vacio { text-align: center; color: #999; padding: 40px 20px; font-style: italic; }
-
-    .ticket-totales {
-        background: #f5f5f5;
-        padding: 12px 15px;
-        border-top: 2px solid #ddd;
-    }
-
-    .totales-fila {
-        display: flex;
-        justify-content: space-between;
-        font-size: 13px;
-        padding: 2px 0;
-        color: #555;
-    }
-
-    .total-final {
-        display: flex;
-        justify-content: space-between;
-        font-size: 22px;
-        font-weight: bold;
-        color: #0f6b5e;
-        padding: 8px 0 4px 0;
-        border-top: 2px dashed #999;
-        margin-top: 6px;
-    }
-
-    .acciones {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding: 10px;
-        background: #fafafa;
-    }
-
-    .btn-accion {
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 14px;
-        transition: all 0.2s;
-    }
-
-    .btn-cancelar { background: #ef5350; color: white; }
-    .btn-cancelar:hover { background: #d32f2f; }
-    .btn-cobrar { background: #0f6b5e; color: white; font-size: 16px; }
-    .btn-cobrar:hover { background: #0a4a40; }
-    .btn-cobrar:disabled { background: #bdbdbd; cursor: not-allowed; }
-
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-overlay.activo { display: flex; }
-
-    .modal {
-        background: white;
-        border-radius: 12px;
-        padding: 25px;
-        width: 400px;
-        max-width: 90%;
-    }
-
-    .modal h2 { color: #0f6b5e; margin-bottom: 15px; text-align: center; }
-
-    .modal-total {
-        text-align: center;
-        font-size: 32px;
-        font-weight: bold;
-        color: #0f6b5e;
-        padding: 15px;
-        background: #e8f5f1;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
-
-    .pago-opciones {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .pago-btn {
-        padding: 20px;
-        border: 2px solid #ddd;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 14px;
-        transition: all 0.2s;
-    }
-
-    .pago-btn:hover, .pago-btn.activo {
-        border-color: #0f6b5e;
-        background: #e8f5f1;
-        color: #0f6b5e;
-    }
-
-    .modal-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
 </style>
 </head>
 <body>
 
 <div class="container">
 
+    <!-- ========== HEADER ========== -->
     <div class="header">
         <div class="header-logo">
-            <!-- LOGO SVG SANT PATRICI -->
             <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <pattern id="hatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
                         <line x1="0" y1="0" x2="0" y2="4" stroke="white" stroke-width="1.5"/>
                     </pattern>
                 </defs>
-                <!-- Casa con tejado -->
                 <path d="M 30 60 L 60 30 L 95 30 L 95 15 L 105 15 L 105 30 L 140 30 L 170 60 L 170 75 L 30 75 Z" fill="url(#hatch)" opacity="0.9"/>
-                <!-- Ventanas -->
                 <rect x="65" y="50" width="14" height="20" fill="white"/>
                 <rect x="93" y="50" width="14" height="20" fill="white"/>
                 <rect x="121" y="50" width="14" height="20" fill="white"/>
-                <!-- Texto -->
                 <text x="100" y="92" text-anchor="middle" font-family="serif" font-size="8" fill="white" letter-spacing="2">1 9 1 8</text>
-                <text x="100" y="105" text-anchor="middle" font-family="serif" font-size="13" font-weight="300" fill="white" letter-spacing="2">SANT PATRICI</text>
+                <text x="100" y="105" text-anchor="middle" font-family="serif" font-size="13" fill="white" letter-spacing="2">SANT PATRICI</text>
             </svg>
             <h1>TPV Snacks Bar</h1>
         </div>
-        <div class="info">
+        <div class="header-acciones">
+            <button class="header-btn" onclick="abrirCierre()">📊 Cierre de Caja</button>
+            <button class="header-btn" onclick="verTicketsAbiertos()">📋 Tickets Abiertos</button>
+        </div>
+        <div class="header-info">
             <div id="fecha-hora">--/--/---- --:--</div>
             <div>Cajero: <strong id="cajero-actual">Admin</strong></div>
             <div id="estado-sheets" style="font-size:11px; opacity:0.8;">📊 Sheets: ---</div>
         </div>
     </div>
 
-    <div class="productos-zona">
-        <div class="categorias" id="categorias-lista"></div>
-        <div class="productos-grid" id="productos-lista"></div>
+    <!-- ========== ZONA PRINCIPAL (Mesas / Productos) ========== -->
+    <div class="zona-principal" id="zona-principal">
+        <!-- Se rellena dinámicamente -->
     </div>
 
+    <!-- ========== TICKET ========== -->
     <div class="ticket-zona">
         <div class="ticket-header">🧾 TICKET ACTUAL</div>
-
+        <div class="ticket-mesa-actual" id="ticket-mesa-actual" style="display:none;">Mesa: --</div>
+        
         <div class="ticket-items" id="ticket-items">
-            <div class="ticket-vacio">Añade productos al ticket pulsando sobre ellos</div>
+            <div class="ticket-vacio">Selecciona una mesa para comenzar</div>
         </div>
 
         <div class="ticket-totales">
             <div class="totales-fila"><span>Base IVA 10%:</span><span id="base-10">0,00 €</span></div>
-            <div class="totales-fila"><span>Base IVA 21%:</span><span id="base-21">0,00 €</span></div>
-            <div class="totales-fila"><span>Total IVA:</span><span id="total-iva">0,00 €</span></div>
+            <div class="totales-fila"><span>Cuota IVA 10%:</span><span id="cuota-10">0,00 €</span></div>
             <div class="total-final"><span>TOTAL:</span><span id="total-final">0,00 €</span></div>
         </div>
 
         <div class="acciones">
-            <button class="btn-accion btn-cancelar" onclick="cancelarTicket()">❌ Cancelar</button>
-            <button class="btn-accion btn-cobrar" id="btn-cobrar" onclick="abrirCobro()" disabled>💰 Cobrar</button>
+            <button class="btn-accion btn-cancelar" onclick="cancelarTicket()" id="btn-cancelar" disabled>❌ Cancelar</button>
+            <button class="btn-accion btn-guardar" onclick="guardarTicketAbierto()" id="btn-guardar" disabled>💾 Guardar</button>
+            <button class="btn-accion btn-prefactura" onclick="imprimirPrefactura()" id="btn-prefactura" disabled>🖨️ Pre-factura</button>
+            <button class="btn-accion btn-prefactura" onclick="cambiarMesa()" id="btn-cambiar-mesa" disabled>🔄 Cambiar mesa</button>
+            <button class="btn-accion btn-cobrar" onclick="abrirCobro()" id="btn-cobrar" disabled>💰 Cobrar</button>
         </div>
     </div>
 
 </div>
 
+<!-- ========== MODAL COBRO ========== -->
 <div class="modal-overlay" id="modal-cobro">
     <div class="modal">
         <h2>💳 Forma de pago</h2>
         <div class="modal-total" id="modal-total">0,00 €</div>
-        
         <div class="pago-opciones">
             <button class="pago-btn" data-pago="EFECTIVO" onclick="seleccionarPago('EFECTIVO')">💵 Efectivo</button>
             <button class="pago-btn" data-pago="TARJETA" onclick="seleccionarPago('TARJETA')">💳 Tarjeta</button>
             <button class="pago-btn" data-pago="BIZUM" onclick="seleccionarPago('BIZUM')">📱 Bizum</button>
             <button class="pago-btn" data-pago="TRANSFERENCIA" onclick="seleccionarPago('TRANSFERENCIA')">🏦 Transferencia</button>
         </div>
-
         <div class="modal-acciones">
-            <button class="btn-accion btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-            <button class="btn-accion btn-cobrar" id="btn-confirmar-cobro" onclick="confirmarCobro()" disabled>✅ Confirmar e Imprimir</button>
+            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cobro')">Cancelar</button>
+            <button class="btn-accion btn-cobrar" id="btn-confirmar-cobro" onclick="confirmarCobro()" disabled style="grid-column:auto;">✅ Confirmar e Imprimir</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL CIERRE DE CAJA ========== -->
+<div class="modal-overlay" id="modal-cierre">
+    <div class="modal modal-grande">
+        <h2>📊 Cierre de Caja</h2>
+        <div id="cierre-contenido"></div>
+        <div class="modal-acciones">
+            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cierre')">Cerrar</button>
+            <button class="btn-accion btn-cobrar" onclick="confirmarCierre()" style="grid-column:auto;">✅ Confirmar Cierre e Imprimir</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL TICKETS ABIERTOS ========== -->
+<div class="modal-overlay" id="modal-abiertos">
+    <div class="modal">
+        <h2>📋 Tickets Abiertos</h2>
+        <div id="abiertos-lista"></div>
+        <div class="modal-acciones">
+            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-abiertos')" style="grid-column: 1/-1;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL CAMBIAR MESA ========== -->
+<div class="modal-overlay" id="modal-cambiar-mesa">
+    <div class="modal">
+        <h2>🔄 Cambiar Mesa</h2>
+        <p style="margin-bottom: 15px;">Selecciona la nueva mesa de destino:</p>
+        <div id="cambiar-mesa-lista" class="mesas-grid"></div>
+        <div class="modal-acciones" style="margin-top: 15px;">
+            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cambiar-mesa')" style="grid-column: 1/-1;">Cancelar</button>
         </div>
     </div>
 </div>
