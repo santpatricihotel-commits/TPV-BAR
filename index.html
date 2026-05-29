@@ -2,458 +2,811 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TPV - Sant Patrici Menorca</title>
-<!-- Librería para generar QR Veri*Factu -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>TPV Sant Patrici</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-body { background: #f0f2f5; height: 100vh; overflow: hidden; }
+  /* ============ RESET & BASE ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; user-select: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, select { font-family: inherit; }
 
-.container {
-    display: grid;
-    grid-template-columns: 1fr 420px;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-    gap: 10px;
-    padding: 10px;
-}
+  /* ============ LAYOUT PRINCIPAL ============ */
+  .app { display: grid; grid-template-rows: auto 1fr; height: 100vh; height: 100dvh; }
 
-/* ===== HEADER ===== */
-.header {
-    grid-column: 1 / -1;
-    background: linear-gradient(135deg, #0f6b5e, #1a8b7a);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
+  /* ============ HEADER ============ */
+  .header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-bottom: 2px solid #334155;
+    padding: 8px 16px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.header-logo { display: flex; align-items: center; gap: 12px; }
-.header-logo svg { height: 50px; }
-.header h1 { font-size: 18px; }
-.header-acciones { display: flex; gap: 8px; }
-.header-btn {
-    padding: 8px 14px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 13px;
-    transition: all 0.2s;
-}
-.header-btn:hover { background: rgba(255,255,255,0.3); }
-.header-info { font-size: 12px; text-align: right; }
-
-/* ===== ZONA PRINCIPAL ===== */
-.zona-principal {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
-    overflow-y: auto;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-/* ===== MESAS ===== */
-.titulo-zona {
-    font-size: 18px;
-    color: #0f6b5e;
-    margin-bottom: 15px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #e8f5f1;
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-}
-.btn-volver {
-    padding: 6px 12px;
-    background: #0f6b5e;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: bold;
-}
-.btn-volver:hover { background: #0a4a40; }
-
-.mesas-grupo { margin-bottom: 20px; }
-.mesas-grupo h3 { color: #555; font-size: 14px; margin-bottom: 10px; }
-.mesas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 12px;
-}
-.mesa-card {
-    aspect-ratio: 1;
-    border: 2px solid #ccc;
-    background: #f9f9f9;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    text-align: center;
-    padding: 8px;
-}
-.mesa-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.mesa-card.libre { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
-.mesa-card.ocupada { border-color: #ff9800; background: #fff3e0; color: #e65100; }
-.mesa-card .mesa-num { font-size: 22px; font-weight: bold; }
-.mesa-card .mesa-info { font-size: 11px; margin-top: 4px; }
-.mesa-card .mesa-total { font-size: 14px; font-weight: bold; margin-top: 4px; }
+    min-height: 64px;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-img { height: 48px; width: auto; object-fit: contain; }
+  .logo-fallback { display: none; }
+  .header-title { font-size: 14px; color: #94a3b8; font-weight: 500; }
+  .header-title strong { color: #fbbf24; display: block; font-size: 18px; }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .badge {
+    background: #1e293b; padding: 6px 12px; border-radius: 8px;
+    font-size: 12px; color: #94a3b8; border: 1px solid #334155;
+  }
+  .badge.online { color: #4ade80; border-color: #166534; }
+  .badge.offline { color: #f87171; border-color: #991b1b; }
+  .header-btn {
+    background: #334155; color: #e2e8f0; padding: 8px 14px;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    transition: background 0.15s;
+  }
+  .header-btn:hover { background: #475569; }
+  .header-btn.primary { background: #fbbf24; color: #0f172a; }
+  .header-btn.primary:hover { background: #f59e0b; }
 
-/* ===== PRODUCTOS ===== */
-.categorias {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-.categoria-btn {
-    padding: 7px 14px;
-    border: 2px solid #0f6b5e;
-    background: white;
-    color: #0f6b5e;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 13px;
-    transition: all 0.2s;
-}
-.categoria-btn:hover, .categoria-btn.activa { background: #0f6b5e; color: white; }
+  /* ============ MAIN ============ */
+  .main { display: grid; grid-template-columns: 1fr 420px; height: 100%; overflow: hidden; }
 
-.productos-grid {
-    display: grid;
+  /* ============ PANEL IZQUIERDO ============ */
+  .left-panel { display: flex; flex-direction: column; overflow: hidden; background: #1e293b; }
+
+  /* Tabs (Mesas / Productos) */
+  .tabs {
+    display: flex; gap: 4px; padding: 8px; background: #0f172a;
+    border-bottom: 1px solid #334155;
+  }
+  .tab {
+    flex: 1; padding: 12px; background: #1e293b; border-radius: 8px;
+    font-weight: 600; font-size: 14px; color: #94a3b8;
+    transition: all 0.15s; min-height: 48px;
+  }
+  .tab.active { background: #fbbf24; color: #0f172a; }
+
+  /* Vista Mesas */
+  .view { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+  .view.hidden { display: none; }
+
+  .zones { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .zone-btn {
+    padding: 10px 16px; background: #334155; border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: #cbd5e1;
+    min-height: 40px;
+  }
+  .zone-btn.active { background: #fbbf24; color: #0f172a; }
+
+  .tables-grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  .table-card {
+    aspect-ratio: 1; background: #334155; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 8px; transition: transform 0.1s, background 0.15s;
+    border: 2px solid transparent; position: relative;
+  }
+  .table-card:active { transform: scale(0.96); }
+  .table-card.libre { background: #1e3a5f; border-color: #3b82f6; }
+  .table-card.ocupada { background: #7c2d12; border-color: #f97316; }
+  .table-card.cuenta { background: #14532d; border-color: #22c55e; }
+  .table-card.selected { box-shadow: 0 0 0 3px #fbbf24; }
+  .table-num { font-size: 24px; font-weight: 800; color: #fff; }
+  .table-status { font-size: 11px; color: #cbd5e1; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .table-total { font-size: 12px; font-weight: 700; color: #fbbf24; margin-top: 2px; }
+
+  /* Vista Productos */
+  .categories {
+    display: flex; gap: 6px; padding: 0 0 12px 0; overflow-x: auto;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .categories::-webkit-scrollbar { display: none; }
+  .cat-btn {
+    padding: 10px 16px; background: #334155; border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: #cbd5e1; white-space: nowrap;
+    min-height: 44px; flex-shrink: 0;
+  }
+  .cat-btn.active { background: #fbbf24; color: #0f172a; }
+
+  .products-grid {
+    display: grid; gap: 10px;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-}
-.producto-card {
-    background: #fafafa;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-}
-.producto-card:hover {
-    border-color: #0f6b5e;
-    background: #e8f5f1;
-    transform: translateY(-2px);
-}
-.producto-nombre { font-weight: bold; font-size: 12px; color: #333; margin-bottom: 6px; min-height: 32px; }
-.producto-precio { color: #0f6b5e; font-size: 16px; font-weight: bold; }
+  }
+  .product-card {
+    background: #334155; border-radius: 10px; padding: 12px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 90px; transition: transform 0.1s, background 0.15s;
+    border: 1px solid #475569;
+  }
+  .product-card:active { transform: scale(0.96); background: #475569; }
+  .product-name { font-size: 13px; font-weight: 600; line-height: 1.3; color: #f1f5f9; }
+  .product-price { font-size: 16px; font-weight: 800; color: #fbbf24; margin-top: 8px; }
 
-/* ===== TICKET ===== */
-.ticket-zona {
-    background: white;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-.ticket-header {
-    background: #0a4a40;
-    color: white;
-    padding: 12px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 15px;
-}
-.ticket-mesa-actual {
-    background: #ff9800;
-    color: white;
-    padding: 6px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 13px;
-}
-.ticket-items { flex: 1; overflow-y: auto; padding: 10px; }
-.ticket-item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 8px;
-    padding: 8px;
-    border-bottom: 1px solid #eee;
-    align-items: center;
-}
-.item-cantidad { display: flex; align-items: center; gap: 4px; }
-.btn-cantidad {
-    background: #e0e0e0;
-    border: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-.btn-cantidad:hover { background: #bdbdbd; }
-.item-cantidad span { min-width: 24px; text-align: center; font-weight: bold; }
-.item-nombre { font-weight: bold; color: #333; font-size: 12px; }
-.item-precio { color: #666; font-size: 11px; }
-.item-total { font-weight: bold; color: #0f6b5e; font-size: 14px; }
-.btn-eliminar {
-    background: #ef5350;
-    color: white;
-    border: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 4px;
-}
-.ticket-vacio { text-align: center; color: #999; padding: 40px 20px; font-style: italic; }
-.ticket-totales { background: #f5f5f5; padding: 10px 15px; border-top: 2px solid #ddd; }
-.totales-fila { display: flex; justify-content: space-between; font-size: 12px; padding: 1px 0; color: #555; }
-.total-final {
-    display: flex;
-    justify-content: space-between;
-    font-size: 22px;
-    font-weight: bold;
-    color: #0f6b5e;
-    padding: 6px 0 4px 0;
-    border-top: 2px dashed #999;
-    margin-top: 4px;
-}
+  /* ============ PANEL DERECHO (TICKET) ============ */
+  .right-panel {
+    background: #0f172a; display: flex; flex-direction: column;
+    border-left: 1px solid #334155; overflow: hidden;
+  }
+  .ticket-header {
+    padding: 14px 16px; background: #1e293b; border-bottom: 1px solid #334155;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ticket-title { font-size: 16px; font-weight: 700; color: #f1f5f9; }
+  .ticket-mesa { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .ticket-clear {
+    background: #7f1d1d; color: #fef2f2; padding: 6px 10px;
+    border-radius: 6px; font-size: 12px; font-weight: 600;
+  }
 
-.acciones {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 8px;
-    background: #fafafa;
-}
-.acciones-row { display: contents; }
-.btn-accion {
-    padding: 10px 6px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-    transition: all 0.2s;
-}
-.btn-cancelar { background: #ef5350; color: white; }
-.btn-cancelar:hover { background: #d32f2f; }
-.btn-guardar { background: #2196f3; color: white; }
-.btn-guardar:hover { background: #1565c0; }
-.btn-prefactura { background: #757575; color: white; }
-.btn-prefactura:hover { background: #424242; }
-.btn-cobrar { background: #0f6b5e; color: white; font-size: 14px; grid-column: 1 / -1; padding: 12px; }
-.btn-cobrar:hover { background: #0a4a40; }
-.btn-cobrar:disabled, .btn-accion:disabled { background: #bdbdbd !important; cursor: not-allowed; }
-
-/* ===== MODAL ===== */
-.modal-overlay {
-    display: none;
-    position: fixed; top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-.modal-overlay.activo { display: flex; }
-.modal {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    width: 500px;
-    max-width: 95%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-.modal-grande { width: 700px; }
-.modal h2 { color: #0f6b5e; margin-bottom: 15px; text-align: center; }
-.modal-total {
-    text-align: center;
-    font-size: 32px;
-    font-weight: bold;
-    color: #0f6b5e;
-    padding: 15px;
-    background: #e8f5f1;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.pago-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.pago-btn {
-    padding: 18px;
-    border: 2px solid #ddd;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+  .ticket-items {
+    flex: 1; overflow-y: auto; padding: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ticket-empty {
+    text-align: center; color: #64748b; padding: 40px 20px;
     font-size: 14px;
-}
-.pago-btn:hover, .pago-btn.activo { border-color: #0f6b5e; background: #e8f5f1; color: #0f6b5e; }
-.modal-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  }
+  .ticket-item {
+    background: #1e293b; padding: 10px 12px; border-radius: 8px;
+    margin-bottom: 8px; display: grid; grid-template-columns: 1fr auto auto;
+    gap: 8px; align-items: center;
+  }
+  .ti-info .ti-name { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+  .ti-info .ti-price { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .ti-qty { display: flex; align-items: center; gap: 4px; }
+  .qty-btn {
+    width: 28px; height: 28px; background: #334155; border-radius: 6px;
+    font-weight: 700; color: #f1f5f9; display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .qty-btn:active { background: #475569; }
+  .qty-num { min-width: 24px; text-align: center; font-weight: 700; font-size: 14px; }
+  .ti-total { font-weight: 800; color: #fbbf24; font-size: 14px; min-width: 60px; text-align: right; }
 
-/* ===== CIERRE DE CAJA ===== */
-.cierre-stat {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    font-size: 14px;
-}
-.cierre-stat strong { color: #0f6b5e; font-size: 16px; }
-.cierre-section { margin: 15px 0; }
-.cierre-section h3 { color: #0a4a40; margin-bottom: 8px; font-size: 14px; }
-.cierre-total-grande {
-    text-align: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: #0f6b5e;
-    padding: 20px;
-    background: #e8f5f1;
-    border-radius: 10px;
-    margin: 15px 0;
-}
+  .ticket-footer {
+    background: #1e293b; padding: 14px 16px; border-top: 1px solid #334155;
+  }
+  .ticket-totals { margin-bottom: 12px; }
+  .ticket-line {
+    display: flex; justify-content: space-between; padding: 4px 0;
+    font-size: 13px; color: #cbd5e1;
+  }
+  .ticket-line.total {
+    font-size: 20px; font-weight: 800; color: #fbbf24;
+    border-top: 1px dashed #475569; padding-top: 8px; margin-top: 4px;
+  }
+  .pay-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pay-btn {
+    padding: 14px; border-radius: 10px; font-weight: 700;
+    font-size: 14px; transition: transform 0.1s; min-height: 50px;
+  }
+  .pay-btn:active { transform: scale(0.97); }
+  .pay-cash { background: #16a34a; color: #fff; }
+  .pay-card { background: #2563eb; color: #fff; }
+  .pay-print {
+    grid-column: 1 / -1; background: #475569; color: #f1f5f9; margin-top: 8px;
+  }
 
-/* ===== TICKETS ABIERTOS LIST ===== */
-.ticket-abierto-card {
-    border: 2px solid #ff9800;
-    background: #fff3e0;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.ticket-abierto-card:hover { background: #ffe0b2; }
+  /* ============ MOBILE TICKET TOGGLE ============ */
+  .mobile-ticket-toggle {
+    display: none; position: fixed; bottom: 16px; right: 16px;
+    background: #fbbf24; color: #0f172a; width: 64px; height: 64px;
+    border-radius: 50%; font-weight: 800; font-size: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4); z-index: 100;
+    flex-direction: column; align-items: center; justify-content: center;
+  }
+  .mobile-ticket-toggle .badge-count {
+    position: absolute; top: -4px; right: -4px;
+    background: #dc2626; color: #fff; font-size: 11px;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
 
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+  /* ============ MODALES ============ */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center; z-index: 200;
+    padding: 16px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #1e293b; border-radius: 16px; padding: 24px;
+    max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { color: #f1f5f9; margin-bottom: 16px; font-size: 20px; }
+  .modal label { display: block; font-size: 13px; color: #94a3b8; margin: 12px 0 6px; }
+  .modal input {
+    width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155;
+    border-radius: 8px; color: #f1f5f9; font-size: 14px;
+  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; }
+  .btn-cancel { background: #475569; color: #f1f5f9; }
+  .btn-save { background: #fbbf24; color: #0f172a; }
+
+  /* ============ TOAST ============ */
+  .toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #f1f5f9; padding: 12px 20px;
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 300; opacity: 0; transition: opacity 0.3s, transform 0.3s;
+    border-left: 4px solid #fbbf24; font-size: 14px; max-width: 90%;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-left-color: #22c55e; }
+  .toast.error { border-left-color: #ef4444; }
+
+  /* ============ RESPONSIVE - TABLET (768px - 1199px) ============ */
+  @media (max-width: 1199px) {
+    .main { grid-template-columns: 1fr 360px; }
+    .header-title strong { font-size: 16px; }
+  }
+
+  /* ============ RESPONSIVE - TABLET VERTICAL & MÓVIL GRANDE (max 900px) ============ */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .right-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 100%;
+      max-width: 400px; z-index: 150; transform: translateX(100%);
+      transition: transform 0.3s ease; box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    }
+    .right-panel.show { transform: translateX(0); }
+    .mobile-ticket-toggle { display: flex; }
+    .header-title { display: none; }
+  }
+
+  /* ============ RESPONSIVE - MÓVIL (max 600px) ============ */
+  @media (max-width: 600px) {
+    .header { padding: 6px 10px; min-height: 56px; }
+    .logo-img { height: 36px; }
+    .header-btn { padding: 8px 10px; font-size: 12px; }
+    .badge { padding: 4px 8px; font-size: 11px; }
+    .view { padding: 10px; }
+    .tables-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+    .table-num { font-size: 20px; }
+    .products-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+    .product-card { min-height: 80px; padding: 10px; }
+    .product-name { font-size: 12px; }
+    .product-price { font-size: 14px; }
+    .right-panel { max-width: 100%; }
+  }
+
+  /* ============ ORIENTACIÓN HORIZONTAL TABLET (Samsung Tab) ============ */
+  @media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .main { grid-template-columns: 1fr 380px; }
+    .tables-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    .products-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .product-card { min-height: 100px; }
+    .pay-btn { min-height: 56px; font-size: 15px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="app">
 
-    <!-- ========== HEADER ========== -->
-    <div class="header">
-        <div class="header-logo">
-            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="hatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
-                        <line x1="0" y1="0" x2="0" y2="4" stroke="white" stroke-width="1.5"/>
-                    </pattern>
-                </defs>
-                <path d="M 30 60 L 60 30 L 95 30 L 95 15 L 105 15 L 105 30 L 140 30 L 170 60 L 170 75 L 30 75 Z" fill="url(#hatch)" opacity="0.9"/>
-                <rect x="65" y="50" width="14" height="20" fill="white"/>
-                <rect x="93" y="50" width="14" height="20" fill="white"/>
-                <rect x="121" y="50" width="14" height="20" fill="white"/>
-                <text x="100" y="92" text-anchor="middle" font-family="serif" font-size="8" fill="white" letter-spacing="2">1 9 1 8</text>
-                <text x="100" y="105" text-anchor="middle" font-family="serif" font-size="13" fill="white" letter-spacing="2">SANT PATRICI</text>
-            </svg>
-            <h1>TPV Snacks Bar</h1>
-        </div>
-        <div class="header-acciones">
-            <button class="header-btn" onclick="abrirCierre()">📊 Cierre de Caja</button>
-            <button class="header-btn" onclick="verTicketsAbiertos()">📋 Tickets Abiertos</button>
-        </div>
-        <div class="header-info">
-            <div id="fecha-hora">--/--/---- --:--</div>
-            <div>Cajero: <strong id="cajero-actual">Admin</strong></div>
-            <div id="estado-sheets" style="font-size:11px; opacity:0.8;">📊 Sheets: ---</div>
-        </div>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <img src="https://santpatrici.es/wp-content/uploads/sites/98/2026/02/Logo-8.png" 
+           alt="Sant Patrici" class="logo-img" 
+           onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block';">
+      <svg id="logoFallback" class="logo-fallback" width="48" height="48" viewBox="0 0 48 48">
+        <rect x="4" y="12" width="40" height="32" fill="#fbbf24" rx="2"/>
+        <text x="24" y="32" text-anchor="middle" fill="#0f172a" font-size="14" font-weight="bold">SP</text>
+      </svg>
+      <div class="header-title">
+        <strong>Sant Patrici</strong>
+        <span>TPV Restaurante</span>
+      </div>
     </div>
-
-    <!-- ========== ZONA PRINCIPAL (Mesas / Productos) ========== -->
-    <div class="zona-principal" id="zona-principal">
-        <!-- Se rellena dinámicamente -->
+    <div class="header-right">
+      <span class="badge" id="connBadge">⏳ Conectando...</span>
+      <span class="badge" id="clockBadge">--:--</span>
+      <button class="header-btn" onclick="openConfig()">⚙️ Config</button>
+      <button class="header-btn primary" onclick="syncNow()">🔄 Sync</button>
     </div>
+  </header>
 
-    <!-- ========== TICKET ========== -->
-    <div class="ticket-zona">
-        <div class="ticket-header">🧾 TICKET ACTUAL</div>
-        <div class="ticket-mesa-actual" id="ticket-mesa-actual" style="display:none;">Mesa: --</div>
-        
-        <div class="ticket-items" id="ticket-items">
-            <div class="ticket-vacio">Selecciona una mesa para comenzar</div>
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PANEL IZQUIERDO -->
+    <section class="left-panel">
+      <div class="tabs">
+        <button class="tab active" id="tabMesas" onclick="switchView('mesas')">🪑 Mesas</button>
+        <button class="tab" id="tabProductos" onclick="switchView('productos')">🍽️ Productos</button>
+      </div>
+
+      <!-- Vista Mesas -->
+      <div class="view" id="viewMesas">
+        <div class="zones" id="zonesContainer"></div>
+        <div class="tables-grid" id="tablesGrid"></div>
+      </div>
+
+      <!-- Vista Productos -->
+      <div class="view hidden" id="viewProductos">
+        <div class="categories" id="categoriesContainer"></div>
+        <div class="products-grid" id="productsGrid"></div>
+      </div>
+    </section>
+
+    <!-- PANEL DERECHO (TICKET) -->
+    <aside class="right-panel" id="rightPanel">
+      <div class="ticket-header">
+        <div>
+          <div class="ticket-title">Ticket actual</div>
+          <div class="ticket-mesa" id="ticketMesa">Sin mesa seleccionada</div>
         </div>
-
-        <div class="ticket-totales">
-            <div class="totales-fila"><span>Base IVA 10%:</span><span id="base-10">0,00 €</span></div>
-            <div class="totales-fila"><span>Cuota IVA 10%:</span><span id="cuota-10">0,00 €</span></div>
-            <div class="total-final"><span>TOTAL:</span><span id="total-final">0,00 €</span></div>
+        <button class="ticket-clear" onclick="clearTicket()">🗑️ Limpiar</button>
+      </div>
+      <div class="ticket-items" id="ticketItems">
+        <div class="ticket-empty">Selecciona una mesa y añade productos</div>
+      </div>
+      <div class="ticket-footer">
+        <div class="ticket-totals">
+          <div class="ticket-line"><span>Subtotal</span><span id="subtotal">0,00 €</span></div>
+          <div class="ticket-line"><span>IVA (10%)</span><span id="iva">0,00 €</span></div>
+          <div class="ticket-line total"><span>TOTAL</span><span id="total">0,00 €</span></div>
         </div>
-
-        <div class="acciones">
-            <button class="btn-accion btn-cancelar" onclick="cancelarTicket()" id="btn-cancelar" disabled>❌ Cancelar</button>
-            <button class="btn-accion btn-guardar" onclick="guardarTicketAbierto()" id="btn-guardar" disabled>💾 Guardar</button>
-            <button class="btn-accion btn-prefactura" onclick="imprimirPrefactura()" id="btn-prefactura" disabled>🖨️ Pre-factura</button>
-            <button class="btn-accion btn-prefactura" onclick="cambiarMesa()" id="btn-cambiar-mesa" disabled>🔄 Cambiar mesa</button>
-            <button class="btn-accion btn-cobrar" onclick="abrirCobro()" id="btn-cobrar" disabled>💰 Cobrar</button>
+        <div class="pay-buttons">
+          <button class="pay-btn pay-cash" onclick="cobrar('Efectivo')">💵 Efectivo</button>
+          <button class="pay-btn pay-card" onclick="cobrar('Tarjeta')">💳 Tarjeta</button>
+          <button class="pay-btn pay-print" onclick="imprimirTicket()">🖨️ Imprimir ticket</button>
         </div>
-    </div>
+      </div>
+    </aside>
 
+  </main>
 </div>
 
-<!-- ========== MODAL COBRO ========== -->
-<div class="modal-overlay" id="modal-cobro">
-    <div class="modal">
-        <h2>💳 Forma de pago</h2>
-        <div class="modal-total" id="modal-total">0,00 €</div>
-        <div class="pago-opciones">
-            <button class="pago-btn" data-pago="EFECTIVO" onclick="seleccionarPago('EFECTIVO')">💵 Efectivo</button>
-            <button class="pago-btn" data-pago="TARJETA" onclick="seleccionarPago('TARJETA')">💳 Tarjeta</button>
-            <button class="pago-btn" data-pago="BIZUM" onclick="seleccionarPago('BIZUM')">📱 Bizum</button>
-            <button class="pago-btn" data-pago="TRANSFERENCIA" onclick="seleccionarPago('TRANSFERENCIA')">🏦 Transferencia</button>
-        </div>
-        <div class="modal-acciones">
-            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cobro')">Cancelar</button>
-            <button class="btn-accion btn-cobrar" id="btn-confirmar-cobro" onclick="confirmarCobro()" disabled style="grid-column:auto;">✅ Confirmar e Imprimir</button>
-        </div>
+<!-- BOTÓN TICKET MÓVIL -->
+<button class="mobile-ticket-toggle" onclick="toggleMobileTicket()">
+  🧾<span style="font-size: 10px; margin-top: 2px;">Ticket</span>
+  <span class="badge-count" id="badgeCount">0</span>
+</button>
+
+<!-- MODAL CONFIG -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <h2>⚙️ Configuración Google Sheets</h2>
+    <p style="font-size: 13px; color: #94a3b8; line-height: 1.5;">
+      Pega aquí la URL del <strong>Web App</strong> que has desplegado desde Google Apps Script.
+      Debe terminar en <code>/exec</code>.
+    </p>
+    <label>URL del Web App</label>
+    <input type="url" id="cfgUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+    <label>Nombre del local (opcional)</label>
+    <input type="text" id="cfgLocal" placeholder="Sant Patrici Restaurante">
+    <div style="background:#0f172a;padding:12px;border-radius:8px;margin-top:16px;font-size:12px;color:#94a3b8;line-height:1.6;">
+      <strong style="color:#fbbf24;">📋 Pasos rápidos:</strong><br>
+      1. Abre <a href="https://script.google.com" target="_blank" style="color:#60a5fa;">script.google.com</a><br>
+      2. Copia el código del Apps Script (te lo paso abajo)<br>
+      3. Pulsa <strong>Implementar → Nueva implementación → Web app</strong><br>
+      4. Acceso: <strong>Cualquiera</strong><br>
+      5. Copia la URL que termina en <code>/exec</code> y pégala arriba
     </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeConfig()">Cancelar</button>
+      <button class="btn-save" onclick="saveConfig()">Guardar</button>
+    </div>
+  </div>
 </div>
 
-<!-- ========== MODAL CIERRE DE CAJA ========== -->
-<div class="modal-overlay" id="modal-cierre">
-    <div class="modal modal-grande">
-        <h2>📊 Cierre de Caja</h2>
-        <div id="cierre-contenido"></div>
-        <div class="modal-acciones">
-            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cierre')">Cerrar</button>
-            <button class="btn-accion btn-cobrar" onclick="confirmarCierre()" style="grid-column:auto;">✅ Confirmar Cierre e Imprimir</button>
-        </div>
-    </div>
-</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-<!-- ========== MODAL TICKETS ABIERTOS ========== -->
-<div class="modal-overlay" id="modal-abiertos">
-    <div class="modal">
-        <h2>📋 Tickets Abiertos</h2>
-        <div id="abiertos-lista"></div>
-        <div class="modal-acciones">
-            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-abiertos')" style="grid-column: 1/-1;">Cerrar</button>
-        </div>
-    </div>
-</div>
+<script>
+/* ============ DATOS DEMO ============ */
+const ZONAS = ['Salón', 'Terraza', 'Barra'];
+const MESAS = {
+  'Salón':   [1,2,3,4,5,6,7,8,9,10],
+  'Terraza': [11,12,13,14,15,16],
+  'Barra':   ['B1','B2','B3','B4']
+};
 
-<!-- ========== MODAL CAMBIAR MESA ========== -->
-<div class="modal-overlay" id="modal-cambiar-mesa">
-    <div class="modal">
-        <h2>🔄 Cambiar Mesa</h2>
-        <p style="margin-bottom: 15px;">Selecciona la nueva mesa de destino:</p>
-        <div id="cambiar-mesa-lista" class="mesas-grid"></div>
-        <div class="modal-acciones" style="margin-top: 15px;">
-            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cambiar-mesa')" style="grid-column: 1/-1;">Cancelar</button>
-        </div>
-    </div>
-</div>
+const CATEGORIAS = ['Bebidas', 'Tapas', 'Principales', 'Postres', 'Cafés'];
+const PRODUCTOS = {
+  'Bebidas': [
+    {id:'b1', nombre:'Agua 50cl', precio:1.80},
+    {id:'b2', nombre:'Coca-Cola', precio:2.50},
+    {id:'b3', nombre:'Cerveza caña', precio:2.20},
+    {id:'b4', nombre:'Cerveza tercio', precio:2.80},
+    {id:'b5', nombre:'Vino tinto copa', precio:3.50},
+    {id:'b6', nombre:'Vino blanco copa', precio:3.50},
+    {id:'b7', nombre:'Zumo natural', precio:3.00},
+    {id:'b8', nombre:'Vermut', precio:3.20},
+  ],
+  'Tapas': [
+    {id:'t1', nombre:'Patatas bravas', precio:5.50},
+    {id:'t2', nombre:'Croquetas (6)', precio:7.00},
+    {id:'t3', nombre:'Calamares', precio:9.00},
+    {id:'t4', nombre:'Jamón ibérico', precio:14.00},
+    {id:'t5', nombre:'Tabla quesos', precio:12.00},
+    {id:'t6', nombre:'Pulpo a la gallega', precio:13.50},
+    {id:'t7', nombre:'Tortilla española', precio:6.50},
+  ],
+  'Principales': [
+    {id:'p1', nombre:'Paella mixta', precio:16.00},
+    {id:'p2', nombre:'Entrecot', precio:22.00},
+    {id:'p3', nombre:'Lubina al horno', precio:19.50},
+    {id:'p4', nombre:'Risotto setas', precio:14.50},
+    {id:'p5', nombre:'Hamburguesa Sant Patrici', precio:13.50},
+    {id:'p6', nombre:'Ensalada César', precio:11.00},
+  ],
+  'Postres': [
+    {id:'d1', nombre:'Tarta queso', precio:5.50},
+    {id:'d2', nombre:'Crema catalana', precio:5.00},
+    {id:'d3', nombre:'Helado (2 bolas)', precio:4.50},
+    {id:'d4', nombre:'Coulant chocolate', precio:6.00},
+  ],
+  'Cafés': [
+    {id:'c1', nombre:'Café solo', precio:1.40},
+    {id:'c2', nombre:'Café con leche', precio:1.60},
+    {id:'c3', nombre:'Cortado', precio:1.50},
+    {id:'c4', nombre:'Carajillo', precio:2.50},
+    {id:'c5', nombre:'Té / infusión', precio:1.80},
+  ]
+};
 
-<script src="app.js?v=20260529"></script>
+/* ============ ESTADO ============ */
+let state = {
+  zonaActiva: 'Salón',
+  catActiva: 'Bebidas',
+  mesaSeleccionada: null,
+  tickets: {},  // {mesaId: [{id, nombre, precio, qty}]}
+  estadosMesa: {}, // {mesaId: 'libre' | 'ocupada' | 'cuenta'}
+  config: {
+    url: '',
+    local: 'Sant Patrici'
+  }
+};
+
+// Cargar config en memoria (sessionStorage como mejor esfuerzo)
+try {
+  const saved = sessionStorage.getItem('tpv_config');
+  if (saved) state.config = JSON.parse(saved);
+} catch(e) {}
+
+/* ============ UTILS ============ */
+const fmt = n => n.toFixed(2).replace('.', ',') + ' €';
+const $ = id => document.getElementById(id);
+
+function toast(msg, type='') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ============ RENDER MESAS ============ */
+function renderZonas() {
+  $('zonesContainer').innerHTML = ZONAS.map(z =>
+    `<button class="zone-btn ${z===state.zonaActiva?'active':''}" onclick="selectZona('${z}')">${z}</button>`
+  ).join('');
+}
+
+function selectZona(z) {
+  state.zonaActiva = z;
+  renderZonas();
+  renderMesas();
+}
+
+function renderMesas() {
+  const grid = $('tablesGrid');
+  const mesas = MESAS[state.zonaActiva] || [];
+  grid.innerHTML = mesas.map(m => {
+    const id = state.zonaActiva + '-' + m;
+    const estado = state.estadosMesa[id] || 'libre';
+    const ticket = state.tickets[id] || [];
+    const total = ticket.reduce((s,i) => s + i.precio*i.qty, 0);
+    const sel = state.mesaSeleccionada === id ? 'selected' : '';
+    return `
+      <div class="table-card ${estado} ${sel}" onclick="selectMesa('${id}', '${m}')">
+        <div class="table-num">${m}</div>
+        <div class="table-status">${estado}</div>
+        ${total > 0 ? `<div class="table-total">${fmt(total)}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function selectMesa(id, num) {
+  state.mesaSeleccionada = id;
+  state.estadosMesa[id] = state.estadosMesa[id] || 'ocupada';
+  $('ticketMesa').textContent = `Mesa ${num} · ${state.zonaActiva}`;
+  renderMesas();
+  renderTicket();
+  // En móvil cambiar a productos
+  if (window.innerWidth <= 900) switchView('productos');
+}
+
+/* ============ RENDER PRODUCTOS ============ */
+function renderCategorias() {
+  $('categoriesContainer').innerHTML = CATEGORIAS.map(c =>
+    `<button class="cat-btn ${c===state.catActiva?'active':''}" onclick="selectCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function selectCat(c) {
+  state.catActiva = c;
+  renderCategorias();
+  renderProductos();
+}
+
+function renderProductos() {
+  const prods = PRODUCTOS[state.catActiva] || [];
+  $('productsGrid').innerHTML = prods.map(p => `
+    <div class="product-card" onclick="addProducto('${p.id}')">
+      <div class="product-name">${p.nombre}</div>
+      <div class="product-price">${fmt(p.precio)}</div>
+    </div>
+  `).join('');
+}
+
+function addProducto(pid) {
+  if (!state.mesaSeleccionada) {
+    toast('⚠️ Selecciona primero una mesa', 'error');
+    switchView('mesas');
+    return;
+  }
+  const prod = PRODUCTOS[state.catActiva].find(p => p.id === pid);
+  if (!prod) return;
+  const mid = state.mesaSeleccionada;
+  if (!state.tickets[mid]) state.tickets[mid] = [];
+  const existe = state.tickets[mid].find(i => i.id === pid);
+  if (existe) existe.qty++;
+  else state.tickets[mid].push({...prod, qty: 1});
+  state.estadosMesa[mid] = 'ocupada';
+  renderTicket();
+  renderMesas();
+}
+
+/* ============ RENDER TICKET ============ */
+function renderTicket() {
+  const mid = state.mesaSeleccionada;
+  const items = mid ? (state.tickets[mid] || []) : [];
+  const cont = $('ticketItems');
+  if (!items.length) {
+    cont.innerHTML = '<div class="ticket-empty">' +
+      (mid ? 'Mesa vacía. Añade productos.' : 'Selecciona una mesa y añade productos') +
+      '</div>';
+  } else {
+    cont.innerHTML = items.map((it,idx) => `
+      <div class="ticket-item">
+        <div class="ti-info">
+          <div class="ti-name">${it.nombre}</div>
+          <div class="ti-price">${fmt(it.precio)} c/u</div>
+        </div>
+        <div class="ti-qty">
+          <button class="qty-btn" onclick="changeQty(${idx},-1)">−</button>
+          <span class="qty-num">${it.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${idx},1)">+</button>
+        </div>
+        <div class="ti-total">${fmt(it.precio*it.qty)}</div>
+      </div>
+    `).join('');
+  }
+  const subtotal = items.reduce((s,i) => s + i.precio*i.qty, 0);
+  const iva = subtotal * 0.10 / 1.10; // IVA incluido
+  $('subtotal').textContent = fmt(subtotal - iva);
+  $('iva').textContent = fmt(iva);
+  $('total').textContent = fmt(subtotal);
+
+  const totalQty = items.reduce((s,i) => s + i.qty, 0);
+  $('badgeCount').textContent = totalQty;
+}
+
+function changeQty(idx, delta) {
+  const mid = state.mesaSeleccionada;
+  if (!mid || !state.tickets[mid]) return;
+  state.tickets[mid][idx].qty += delta;
+  if (state.tickets[mid][idx].qty <= 0) {
+    state.tickets[mid].splice(idx, 1);
+  }
+  if (state.tickets[mid].length === 0) {
+    delete state.tickets[mid];
+    state.estadosMesa[mid] = 'libre';
+  }
+  renderTicket();
+  renderMesas();
+}
+
+function clearTicket() {
+  const mid = state.mesaSeleccionada;
+  if (!mid) return;
+  delete state.tickets[mid];
+  state.estadosMesa[mid] = 'libre';
+  renderTicket();
+  renderMesas();
+  toast('🗑️ Ticket limpiado');
+}
+
+/* ============ COBRAR ============ */
+async function cobrar(metodo) {
+  const mid = state.mesaSeleccionada;
+  if (!mid || !state.tickets[mid] || state.tickets[mid].length === 0) {
+    toast('⚠️ No hay productos en el ticket', 'error');
+    return;
+  }
+  const items = state.tickets[mid];
+  const total = items.reduce((s,i) => s + i.precio*i.qty, 0);
+  const venta = {
+    fecha: new Date().toISOString(),
+    local: state.config.local || 'Sant Patrici',
+    mesa: mid,
+    metodo: metodo,
+    total: total.toFixed(2),
+    productos: items.map(i => `${i.qty}x ${i.nombre} (${fmt(i.precio*i.qty)})`).join(' | '),
+    detalle: JSON.stringify(items)
+  };
+
+  toast('⏳ Enviando a Google Sheets...', '');
+  const ok = await sendToSheets(venta);
+
+  if (ok) {
+    toast(`✅ Cobrado ${fmt(total)} con ${metodo}`, 'success');
+    delete state.tickets[mid];
+    state.estadosMesa[mid] = 'libre';
+    state.mesaSeleccionada = null;
+    $('ticketMesa').textContent = 'Sin mesa seleccionada';
+    renderTicket();
+    renderMesas();
+    if (window.innerWidth <= 900) {
+      $('rightPanel').classList.remove('show');
+      switchView('mesas');
+    }
+  } else {
+    toast('❌ Error al guardar. Revisa la URL en Config', 'error');
+  }
+}
+
+/* ============ GOOGLE SHEETS ============ */
+async function sendToSheets(data) {
+  if (!state.config.url) {
+    toast('⚠️ Configura la URL del Web App primero', 'error');
+    openConfig();
+    return false;
+  }
+  try {
+    // Usamos no-cors + form-urlencoded para evitar preflight CORS
+    const body = new URLSearchParams();
+    Object.keys(data).forEach(k => body.append(k, data[k]));
+    
+    const res = await fetch(state.config.url, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script no devuelve CORS headers; aceptamos respuesta opaca
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    // Con no-cors no podemos leer la respuesta, asumimos OK si no hay excepción
+    return true;
+  } catch (e) {
+    console.error('Error sheets:', e);
+    return false;
+  }
+}
+
+async function checkConnection() {
+  if (!state.config.url) {
+    $('connBadge').textContent = '⚙️ Sin configurar';
+    $('connBadge').className = 'badge offline';
+    return;
+  }
+  try {
+    // Ping con GET (también sirve para healthcheck si lo implementas)
+    await fetch(state.config.url + '?ping=1', { mode: 'no-cors' });
+    $('connBadge').textContent = '🟢 Online';
+    $('connBadge').className = 'badge online';
+  } catch (e) {
+    $('connBadge').textContent = '🔴 Offline';
+    $('connBadge').className = 'badge offline';
+  }
+}
+
+async function syncNow() {
+  toast('🔄 Comprobando conexión...', '');
+  await checkConnection();
+  toast('✅ Sincronizado', 'success');
+}
+
+/* ============ CONFIG MODAL ============ */
+function openConfig() {
+  $('cfgUrl').value = state.config.url || '';
+  $('cfgLocal').value = state.config.local || '';
+  $('configModal').classList.add('show');
+}
+function closeConfig() {
+  $('configModal').classList.remove('show');
+}
+function saveConfig() {
+  state.config.url = $('cfgUrl').value.trim();
+  state.config.local = $('cfgLocal').value.trim() || 'Sant Patrici';
+  try { sessionStorage.setItem('tpv_config', JSON.stringify(state.config)); } catch(e) {}
+  closeConfig();
+  toast('✅ Configuración guardada', 'success');
+  checkConnection();
+}
+
+/* ============ NAVEGACIÓN ============ */
+function switchView(v) {
+  if (v === 'mesas') {
+    $('viewMesas').classList.remove('hidden');
+    $('viewProductos').classList.add('hidden');
+    $('tabMesas').classList.add('active');
+    $('tabProductos').classList.remove('active');
+  } else {
+    $('viewMesas').classList.add('hidden');
+    $('viewProductos').classList.remove('hidden');
+    $('tabMesas').classList.remove('active');
+    $('tabProductos').classList.add('active');
+  }
+}
+
+function toggleMobileTicket() {
+  $('rightPanel').classList.toggle('show');
+}
+
+function imprimirTicket() {
+  const mid = state.mesaSeleccionada;
+  if (!mid || !state.tickets[mid]) {
+    toast('⚠️ No hay ticket para imprimir', 'error');
+    return;
+  }
+  const items = state.tickets[mid];
+  const total = items.reduce((s,i) => s + i.precio*i.qty, 0);
+  const win = window.open('', '_blank', 'width=300,height=600');
+  win.document.write(`
+    <html><head><title>Ticket</title>
+    <style>
+      body{font-family:monospace;padding:10px;font-size:12px;width:280px;}
+      h2{text-align:center;margin:5px 0;}
+      .line{border-top:1px dashed #000;margin:8px 0;}
+      .row{display:flex;justify-content:space-between;}
+      .total{font-weight:bold;font-size:14px;}
+      img{display:block;margin:0 auto 10px;max-width:120px;}
+    </style></head><body>
+    <img src="https://santpatrici.es/wp-content/uploads/sites/98/2026/02/Logo-8.png" onerror="this.style.display='none'">
+    <h2>${state.config.local || 'Sant Patrici'}</h2>
+    <div style="text-align:center;font-size:10px;">${new Date().toLocaleString('es-ES')}</div>
+    <div class="line"></div>
+    <div>Mesa: ${mid}</div>
+    <div class="line"></div>
+    ${items.map(i => `
+      <div class="row"><span>${i.qty}x ${i.nombre}</span><span>${fmt(i.precio*i.qty)}</span></div>
+    `).join('')}
+    <div class="line"></div>
+    <div class="row total"><span>TOTAL</span><span>${fmt(total)}</span></div>
+    <div style="text-align:center;margin-top:15px;font-size:10px;">¡Gracias por su visita!</div>
+    </body></html>
+  `);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
+/* ============ RELOJ ============ */
+function updateClock() {
+  const now = new Date();
+  $('clockBadge').textContent = now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ============ INIT ============ */
+renderZonas();
+renderMesas();
+renderCategorias();
+renderProductos();
+renderTicket();
+checkConnection();
+
+// Si no hay config, mostrar modal al inicio
+setTimeout(() => {
+  if (!state.config.url) {
+    toast('⚙️ Configura tu URL de Google Sheets en Config', '');
+  }
+}, 1500);
+</script>
 </body>
 </html>
