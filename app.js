@@ -1,277 +1,391 @@
-const { useState } = React;
+/* ============================================================
+   TPV - HORT SANT PATRICI S.L.
+   CIF: B57442501
+   Camí de Sant Patrici S/N - Tel: +34 971 71 37 16
+   ============================================================ */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhcns-Kb9KnS_DFzwrJ8no4y_gYCAzbqQxszdomMduxzm4r_O8kSTvkri1IR1YQfUl/exec';
-
-const productos = [
-  { id: 1, nombre: 'Coca Cola', precio: 2.50, color: 'bg-red-600' },
-  { id: 2, nombre: 'Coca Cola Zero', precio: 2.50, color: 'bg-stone-800' },
-  { id: 3, nombre: 'Fanta Limón', precio: 2.50, color: 'bg-lime-500' },
-  { id: 4, nombre: 'Fanta Naranja', precio: 2.50, color: 'bg-orange-500' },
-  { id: 5, nombre: 'Copa Vino Es Moll', precio: 4.00, color: 'bg-rose-600' },
-  { id: 6, nombre: 'Botella Vino Es Moll', precio: 18.00, color: 'bg-rose-800' },
-  { id: 7, nombre: 'Cerveza Estrella Galicia', precio: 3.00, color: 'bg-amber-500' },
-  { id: 8, nombre: 'Vaso Agua', precio: 0.50, color: 'bg-sky-400' },
-  { id: 9, nombre: 'Botella de Agua', precio: 2.00, color: 'bg-blue-500' },
-];
-
-const formatoPrecio = (precio) => {
-  return precio.toFixed(2).replace('.', ',') + '€';
+// ============== CONFIGURACIÓN EMPRESA ==============
+const EMPRESA = {
+    nombre: "HORT SANT PATRICI S.L.",
+    cif: "B57442501",
+    direccion: "Camí de Sant Patrici S/N",
+    telefono: "+34 971 71 37 16",
+    cajero: "Admin"
 };
 
-function App() {
-  const [carrito, setCarrito] = useState([]);
-  const [mostrarPago, setMostrarPago] = useState(false);
-  const [estadoPago, setEstadoPago] = useState('idle');
-  const [metodoPago, setMetodoPago] = useState('');
+// ============== CATÁLOGO DE PRODUCTOS ==============
+// IVA: 4% (queso), 10% (alimentación), 21% (vino y alcohol)
+const PRODUCTOS = [
+    // ===== QUESOS (4% IVA) =====
+    { id: 1,  cat: "Quesos", nombre: "Queso Mahón Curado 500g",   precio: 18.50, iva: 4 },
+    { id: 2,  cat: "Quesos", nombre: "Queso Mahón Semi 500g",     precio: 14.00, iva: 4 },
+    { id: 3,  cat: "Quesos", nombre: "Queso Mahón Tierno 500g",   precio: 11.00, iva: 4 },
+    { id: 4,  cat: "Quesos", nombre: "Queso Reserva 1kg",          precio: 38.00, iva: 4 },
+    { id: 5,  cat: "Quesos", nombre: "Cuña Mahón 250g",            precio: 7.50,  iva: 4 },
+    { id: 6,  cat: "Quesos", nombre: "Lote Degustación",           precio: 25.00, iva: 4 },
 
-  const agregarProducto = (producto) => {
-    const existe = carrito.find(item => item.id === producto.id);
-    if (existe) {
-      setCarrito(carrito.map(item =>
-        item.id === producto.id
-          ? { ...item, cantidad: item.cantidad + 1 }
-          : item
-      ));
-    } else {
-      setCarrito([...carrito, { ...producto, cantidad: 1 }]);
-    }
-  };
+    // ===== ALIMENTACIÓN (10% IVA) =====
+    { id: 10, cat: "Alimentación", nombre: "Pan Payés",              precio: 3.20,  iva: 10 },
+    { id: 11, cat: "Alimentación", nombre: "Sobrasada 250g",         precio: 6.50,  iva: 10 },
+    { id: 12, cat: "Alimentación", nombre: "Mermelada Casera",       precio: 5.50,  iva: 10 },
+    { id: 13, cat: "Alimentación", nombre: "Aceite Oliva Virgen",    precio: 12.00, iva: 10 },
+    { id: 14, cat: "Alimentación", nombre: "Miel Menorquina 500g",   precio: 9.00,  iva: 10 },
+    { id: 15, cat: "Alimentación", nombre: "Carne Picada 500g",      precio: 7.00,  iva: 10 },
+    { id: 16, cat: "Alimentación", nombre: "Embutido Variado",       precio: 15.00, iva: 10 },
 
-  const modificarCantidad = (id, delta) => {
-    setCarrito(carrito.map(item => {
-      if (item.id === id) {
-        const nuevaCantidad = item.cantidad + delta;
-        return nuevaCantidad > 0 ? { ...item, cantidad: nuevaCantidad } : item;
-      }
-      return item;
-    }).filter(item => item.cantidad > 0));
-  };
+    // ===== VINOS Y ALCOHOL (21% IVA) =====
+    { id: 20, cat: "Vinos", nombre: "Vino Tinto Binifadet",     precio: 15.00, iva: 21 },
+    { id: 21, cat: "Vinos", nombre: "Vino Blanco Binifadet",    precio: 14.00, iva: 21 },
+    { id: 22, cat: "Vinos", nombre: "Vino Rosado",              precio: 12.00, iva: 21 },
+    { id: 23, cat: "Vinos", nombre: "Cava Brut",                precio: 18.00, iva: 21 },
+    { id: 24, cat: "Vinos", nombre: "Gin Xoriguer 70cl",        precio: 22.00, iva: 21 },
+    { id: 25, cat: "Vinos", nombre: "Pomada (Gin + Limón)",     precio: 4.50,  iva: 21 }
+];
 
-  const eliminarProducto = (id) => {
-    setCarrito(carrito.filter(item => item.id !== id));
-  };
+// ============== ESTADO DEL TPV ==============
+let ticket = [];               // Productos en el ticket actual
+let categoriaActiva = "Todos"; // Filtro de categoría
+let formaPagoSeleccionada = null;
+let numeroTicket = parseInt(localStorage.getItem('numeroTicket') || '1');
 
-  const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
-  const cantidadItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+// ============== INICIALIZACIÓN ==============
+document.addEventListener('DOMContentLoaded', () => {
+    actualizarFechaHora();
+    setInterval(actualizarFechaHora, 1000);
+    cargarCategorias();
+    cargarProductos();
+    document.getElementById('cajero-actual').textContent = EMPRESA.cajero;
+});
 
-  const generarIdVenta = () => {
-    const ahora = new Date();
-    return 'V' + ahora.getFullYear().toString().slice(-2) + 
-           String(ahora.getMonth() + 1).padStart(2, '0') + 
-           String(ahora.getDate()).padStart(2, '0') + 
-           String(ahora.getHours()).padStart(2, '0') + 
-           String(ahora.getMinutes()).padStart(2, '0') + 
-           String(ahora.getSeconds()).padStart(2, '0');
-  };
-
-  const enviarAGoogleSheets = async (metodo) => {
+// ============== FECHA Y HORA ==============
+function actualizarFechaHora() {
     const ahora = new Date();
     const fecha = ahora.toLocaleDateString('es-ES');
     const hora = ahora.toLocaleTimeString('es-ES');
-    const idVenta = generarIdVenta();
-    const metodoPagoTexto = metodo === 'tarjeta' ? 'Tarjeta' : 'Efectivo';
-
-    const datos = carrito.map(item => ({
-      fecha: fecha,
-      hora: hora,
-      producto: item.nombre,
-      cantidad: item.cantidad,
-      precioUnit: formatoPrecio(item.precio),
-      subtotal: formatoPrecio(item.precio * item.cantidad),
-      idVenta: idVenta,
-      metodoPago: metodoPagoTexto,
-      totalVenta: formatoPrecio(total)
-    }));
-
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datos)
-      });
-      return true;
-    } catch (error) {
-      console.error('Error al enviar:', error);
-      return false;
-    }
-  };
-
-  const procesarPago = async (metodo) => {
-    setMetodoPago(metodo);
-    setEstadoPago('processing');
-
-    const exito = await enviarAGoogleSheets(metodo);
-    
-    if (exito) {
-      setEstadoPago('success');
-      setTimeout(() => {
-        setCarrito([]);
-        setMostrarPago(false);
-        setEstadoPago('idle');
-        setMetodoPago('');
-      }, 2000);
-    } else {
-      setEstadoPago('error');
-    }
-  };
-
-  const cerrarModal = () => {
-    setMostrarPago(false);
-    setEstadoPago('idle');
-    setMetodoPago('');
-  };
-
-  return (
-    React.createElement('div', { className: "min-h-screen bg-gray-100 flex flex-col" },
-      // Header
-      React.createElement('header', { className: "bg-indigo-600 text-white p-4 shadow-lg" },
-        React.createElement('div', { className: "flex items-center justify-between" },
-          React.createElement('h1', { className: "text-2xl font-bold" }, "🧀 Hort Sant Patrici"),
-          React.createElement('div', { className: "flex items-center gap-2 bg-indigo-700 px-4 py-2 rounded-lg" },
-            React.createElement('span', { className: "text-2xl" }, "🛒"),
-            React.createElement('span', { className: "text-xl font-semibold" }, cantidadItems + " items")
-          )
-        )
-      ),
-
-      React.createElement('div', { className: "flex flex-1 overflow-hidden" },
-        // Productos
-        React.createElement('main', { className: "flex-1 p-4 overflow-y-auto" },
-          React.createElement('h2', { className: "text-xl font-semibold text-gray-700 mb-4" }, "Productos"),
-          React.createElement('div', { className: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" },
-            productos.map(producto =>
-              React.createElement('button', {
-                key: producto.id,
-                onClick: () => agregarProducto(producto),
-                className: producto.color + " text-white p-4 rounded-xl shadow-lg hover:scale-105 transition-transform active:scale-95 flex flex-col items-center justify-center min-h-28"
-              },
-                React.createElement('span', { className: "text-base font-bold text-center leading-tight" }, producto.nombre),
-                React.createElement('span', { className: "text-2xl font-bold mt-2" }, formatoPrecio(producto.precio))
-              )
-            )
-          )
-        ),
-
-        // Carrito
-        React.createElement('aside', { className: "w-80 bg-white shadow-xl flex flex-col" },
-          React.createElement('div', { className: "p-4 bg-gray-50 border-b" },
-            React.createElement('h2', { className: "text-xl font-semibold text-gray-700" }, "🛒 Carrito")
-          ),
-          
-          React.createElement('div', { className: "flex-1 overflow-y-auto p-4" },
-            carrito.length === 0 ?
-              React.createElement('p', { className: "text-gray-400 text-center py-8" }, "El carrito está vacío") :
-              React.createElement('div', { className: "space-y-3" },
-                carrito.map(item =>
-                  React.createElement('div', { key: item.id, className: "bg-gray-50 rounded-lg p-3 flex items-center gap-3" },
-                    React.createElement('div', { className: item.color + " w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xs text-center p-1" },
-                      item.nombre.split(' ').slice(0, 2).join(' ')
-                    ),
-                    React.createElement('div', { className: "flex-1" },
-                      React.createElement('p', { className: "font-medium text-gray-800 text-sm" }, item.nombre),
-                      React.createElement('p', { className: "text-gray-500 text-sm" }, formatoPrecio(item.precio * item.cantidad))
-                    ),
-                    React.createElement('div', { className: "flex items-center gap-1" },
-                      React.createElement('button', {
-                        onClick: () => modificarCantidad(item.id, -1),
-                        className: "w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 text-lg font-bold"
-                      }, "−"),
-                      React.createElement('span', { className: "w-6 text-center font-semibold text-sm" }, item.cantidad),
-                      React.createElement('button', {
-                        onClick: () => modificarCantidad(item.id, 1),
-                        className: "w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 text-lg font-bold"
-                      }, "+"),
-                      React.createElement('button', {
-                        onClick: () => eliminarProducto(item.id),
-                        className: "w-8 h-8 bg-red-100 text-red-500 rounded-full flex items-center justify-center hover:bg-red-200 ml-1 text-lg"
-                      }, "🗑")
-                    )
-                  )
-                )
-              )
-          ),
-
-          // Total y botón de pago
-          React.createElement('div', { className: "p-4 border-t bg-gray-50" },
-            React.createElement('div', { className: "flex justify-between items-center mb-4" },
-              React.createElement('span', { className: "text-xl font-semibold text-gray-700" }, "Total:"),
-              React.createElement('span', { className: "text-3xl font-bold text-indigo-600" }, formatoPrecio(total))
-            ),
-            React.createElement('button', {
-              onClick: () => setMostrarPago(true),
-              disabled: carrito.length === 0,
-              className: "w-full bg-indigo-600 text-white py-4 rounded-xl text-xl font-bold hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-            }, "💳 Cobrar")
-          )
-        )
-      ),
-
-      // Modal de Pago
-      mostrarPago && React.createElement('div', { className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" },
-        React.createElement('div', { className: "bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" },
-          estadoPago === 'idle' && React.createElement(React.Fragment, null,
-            React.createElement('div', { className: "p-6 bg-indigo-600 text-white flex justify-between items-center" },
-              React.createElement('h3', { className: "text-2xl font-bold" }, "Método de Pago"),
-              React.createElement('button', {
-                onClick: cerrarModal,
-                className: "w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center hover:bg-indigo-800 text-2xl"
-              }, "✕")
-            ),
-            React.createElement('div', { className: "p-6" },
-              React.createElement('div', { className: "text-center mb-6" },
-                React.createElement('p', { className: "text-gray-500" }, "Total a cobrar"),
-                React.createElement('p', { className: "text-4xl font-bold text-indigo-600" }, formatoPrecio(total))
-              ),
-              React.createElement('div', { className: "space-y-4" },
-                React.createElement('button', {
-                  onClick: () => procesarPago('tarjeta'),
-                  className: "w-full bg-blue-500 text-white py-6 rounded-xl text-xl font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-4"
-                }, "💳 Pago con Tarjeta"),
-                React.createElement('button', {
-                  onClick: () => procesarPago('efectivo'),
-                  className: "w-full bg-green-500 text-white py-6 rounded-xl text-xl font-bold hover:bg-green-600 transition-colors flex items-center justify-center gap-4"
-                }, "💵 Pago en Efectivo")
-              )
-            )
-          ),
-
-          estadoPago === 'processing' && React.createElement('div', { className: "p-12 text-center" },
-            React.createElement('div', { className: "text-6xl mb-6 animate-spin" }, "⏳"),
-            React.createElement('h3', { className: "text-xl font-bold text-gray-800" }, "Procesando pago..."),
-            React.createElement('p', { className: "text-gray-500 mt-2" }, "Guardando en Google Sheets")
-          ),
-
-          estadoPago === 'success' && React.createElement('div', { className: "p-12 text-center" },
-            React.createElement('div', { className: "text-6xl mb-6" }, "✅"),
-            React.createElement('h3', { className: "text-2xl font-bold text-gray-800 mb-2" }, "¡Pago Completado!"),
-            React.createElement('p', { className: "text-gray-500" },
-              (metodoPago === 'tarjeta' ? 'Pago con tarjeta' : 'Pago en efectivo') + " registrado"
-            ),
-            React.createElement('p', { className: "text-3xl font-bold text-green-500 mt-4" }, formatoPrecio(total))
-          ),
-
-          estadoPago === 'error' && React.createElement('div', { className: "p-12 text-center" },
-            React.createElement('div', { className: "text-6xl mb-6" }, "❌"),
-            React.createElement('h3', { className: "text-2xl font-bold text-gray-800 mb-2" }, "Error al guardar"),
-            React.createElement('p', { className: "text-gray-500" }, "No se pudo conectar con Google Sheets"),
-            React.createElement('div', { className: "mt-6 space-y-3" },
-              React.createElement('button', {
-                onClick: () => procesarPago(metodoPago),
-                className: "w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700"
-              }, "Reintentar"),
-              React.createElement('button', {
-                onClick: cerrarModal,
-                className: "w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-300"
-              }, "Cancelar")
-            )
-          )
-        )
-      )
-    )
-  );
+    document.getElementById('fecha-hora').textContent = `${fecha} ${hora}`;
 }
 
-ReactDOM.render(React.createElement(App), document.getElementById('root'));
+// ============== CATEGORÍAS ==============
+function cargarCategorias() {
+    const categorias = ["Todos", ...new Set(PRODUCTOS.map(p => p.cat))];
+    const cont = document.getElementById('categorias-lista');
+    cont.innerHTML = categorias.map(cat => `
+        <button class="categoria-btn ${cat === categoriaActiva ? 'activa' : ''}" 
+                onclick="filtrarCategoria('${cat}')">
+            ${cat}
+        </button>
+    `).join('');
+}
+
+function filtrarCategoria(cat) {
+    categoriaActiva = cat;
+    cargarCategorias();
+    cargarProductos();
+}
+
+// ============== PRODUCTOS ==============
+function cargarProductos() {
+    const lista = categoriaActiva === "Todos" 
+        ? PRODUCTOS 
+        : PRODUCTOS.filter(p => p.cat === categoriaActiva);
+
+    const cont = document.getElementById('productos-lista');
+    cont.innerHTML = lista.map(p => `
+        <div class="producto-card" onclick="añadirProducto(${p.id})">
+            <div class="producto-nombre">${p.nombre}</div>
+            <div class="producto-precio">${p.precio.toFixed(2)} €</div>
+            <div class="producto-iva">IVA ${p.iva}%</div>
+        </div>
+    `).join('');
+}
+
+// ============== TICKET / CARRITO ==============
+function añadirProducto(id) {
+    const producto = PRODUCTOS.find(p => p.id === id);
+    if (!producto) return;
+
+    const existente = ticket.find(item => item.id === id);
+    if (existente) {
+        existente.cantidad++;
+    } else {
+        ticket.push({ ...producto, cantidad: 1 });
+    }
+
+    renderTicket();
+}
+
+function modificarCantidad(id, delta) {
+    const item = ticket.find(p => p.id === id);
+    if (!item) return;
+    item.cantidad += delta;
+    if (item.cantidad <= 0) {
+        ticket = ticket.filter(p => p.id !== id);
+    }
+    renderTicket();
+}
+
+function eliminarProducto(id) {
+    ticket = ticket.filter(p => p.id !== id);
+    renderTicket();
+}
+
+function cancelarTicket() {
+    if (ticket.length === 0) return;
+    if (confirm('¿Seguro que quieres cancelar el ticket actual?')) {
+        ticket = [];
+        renderTicket();
+    }
+}
+
+// ============== RENDER TICKET ==============
+function renderTicket() {
+    const cont = document.getElementById('ticket-items');
+    
+    if (ticket.length === 0) {
+        cont.innerHTML = `<div class="ticket-vacio">Añade productos al ticket pulsando sobre ellos</div>`;
+        document.getElementById('btn-cobrar').disabled = true;
+    } else {
+        cont.innerHTML = ticket.map(item => `
+            <div class="ticket-item">
+                <div class="item-cantidad">
+                    <button class="btn-cantidad" onclick="modificarCantidad(${item.id}, -1)">−</button>
+                    <span>${item.cantidad}</span>
+                    <button class="btn-cantidad" onclick="modificarCantidad(${item.id}, 1)">+</button>
+                </div>
+                <div class="item-info">
+                    <div class="item-nombre">${item.nombre}</div>
+                    <div class="item-precio">${item.precio.toFixed(2)} € · IVA ${item.iva}%</div>
+                </div>
+                <div>
+                    <span class="item-total">${(item.cantidad * item.precio).toFixed(2)} €</span>
+                    <button class="btn-eliminar" onclick="eliminarProducto(${item.id})">×</button>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('btn-cobrar').disabled = false;
+    }
+
+    actualizarTotales();
+}
+
+// ============== CÁLCULO TOTALES ==============
+function calcularTotales() {
+    const ivas = { 4: { base: 0, cuota: 0 }, 10: { base: 0, cuota: 0 }, 21: { base: 0, cuota: 0 } };
+    let total = 0;
+
+    ticket.forEach(item => {
+        const totalLinea = item.cantidad * item.precio;
+        const base = totalLinea / (1 + item.iva / 100);
+        const cuota = totalLinea - base;
+        ivas[item.iva].base += base;
+        ivas[item.iva].cuota += cuota;
+        total += totalLinea;
+    });
+
+    return { ivas, total };
+}
+
+function actualizarTotales() {
+    const { ivas, total } = calcularTotales();
+    document.getElementById('base-4').textContent  = `${ivas[4].base.toFixed(2)} €`;
+    document.getElementById('base-10').textContent = `${ivas[10].base.toFixed(2)} €`;
+    document.getElementById('base-21').textContent = `${ivas[21].base.toFixed(2)} €`;
+    const totalIva = ivas[4].cuota + ivas[10].cuota + ivas[21].cuota;
+    document.getElementById('total-iva').textContent  = `${totalIva.toFixed(2)} €`;
+    document.getElementById('total-final').textContent = `${total.toFixed(2)} €`;
+}
+
+// ============== MODAL DE COBRO ==============
+function abrirCobro() {
+    if (ticket.length === 0) return;
+    const { total } = calcularTotales();
+    document.getElementById('modal-total').textContent = `${total.toFixed(2)} €`;
+    document.getElementById('modal-cobro').classList.add('activo');
+    formaPagoSeleccionada = null;
+    document.querySelectorAll('.pago-btn').forEach(b => b.classList.remove('activo'));
+    document.getElementById('btn-confirmar-cobro').disabled = true;
+}
+
+function cerrarModal() {
+    document.getElementById('modal-cobro').classList.remove('activo');
+}
+
+function seleccionarPago(forma) {
+    formaPagoSeleccionada = forma;
+    document.querySelectorAll('.pago-btn').forEach(b => {
+        b.classList.toggle('activo', b.dataset.pago === forma);
+    });
+    document.getElementById('btn-confirmar-cobro').disabled = false;
+}
+
+function confirmarCobro() {
+    if (!formaPagoSeleccionada) return;
+
+    // Generar datos del ticket
+    const datosTicket = {
+        numeroTicket: String(numeroTicket).padStart(6, '0'),
+        fecha: new Date(),
+        cajero: EMPRESA.cajero,
+        productos: [...ticket],
+        formaPago: formaPagoSeleccionada
+    };
+
+    // Imprimir
+    imprimirTicket(datosTicket);
+
+    // Incrementar nº ticket
+    numeroTicket++;
+    localStorage.setItem('numeroTicket', numeroTicket);
+
+    // Limpiar
+    ticket = [];
+    renderTicket();
+    cerrarModal();
+}
+
+// ============== IMPRESIÓN DEL TICKET ==============
+function imprimirTicket(datos) {
+    // Cálculos
+    const ivasAg = { 4: { base: 0, cuota: 0 }, 10: { base: 0, cuota: 0 }, 21: { base: 0, cuota: 0 } };
+    let total = 0;
+    datos.productos.forEach(p => {
+        const tl = p.cantidad * p.precio;
+        const b = tl / (1 + p.iva / 100);
+        ivasAg[p.iva].base += b;
+        ivasAg[p.iva].cuota += tl - b;
+        total += tl;
+    });
+
+    const f = datos.fecha;
+    const fechaStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}:${String(f.getSeconds()).padStart(2,'0')}`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ticket ${datos.numeroTicket}</title>
+<style>
+@page { size: 80mm auto; margin: 0; }
+@media print { html, body { width: 80mm; } }
+body {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    width: 80mm;
+    margin: 0;
+    padding: 4mm;
+    color: #000;
+}
+.center { text-align: center; }
+.right { text-align: right; }
+.bold { font-weight: bold; }
+.sep { border-top: 1px dashed #000; margin: 5px 0; }
+table { width: 100%; border-collapse: collapse; }
+table td { padding: 1px 0; vertical-align: top; }
+.empresa { font-size: 14px; font-weight: bold; }
+.total-final { font-size: 18px; font-weight: bold; }
+.footer { font-size: 11px; margin-top: 10px; }
+h1, h2, h3 { margin: 0; padding: 0; }
+</style>
+</head>
+<body>
+
+    <div class="center empresa">${EMPRESA.nombre}</div>
+    <div class="center">
+        CIF: ${EMPRESA.cif}<br>
+        ${EMPRESA.direccion}<br>
+        Tel: ${EMPRESA.telefono}
+    </div>
+
+    <div class="sep"></div>
+
+    <table>
+        <tr><td class="bold">Ticket Nº:</td><td class="right">${datos.numeroTicket}</td></tr>
+        <tr><td class="bold">Fecha:</td><td class="right">${fechaStr} ${horaStr}</td></tr>
+        <tr><td class="bold">Cajero:</td><td class="right">${datos.cajero}</td></tr>
+    </table>
+
+    <div class="sep"></div>
+
+    <table>
+        <tr class="bold">
+            <td style="width:10%">Ud</td>
+            <td style="width:50%">Descripción</td>
+            <td style="width:15%" class="right">IVA</td>
+            <td style="width:25%" class="right">Total</td>
+        </tr>
+    </table>
+    <div class="sep"></div>
+    <table>
+        ${datos.productos.map(p => `
+            <tr>
+                <td>${p.cantidad}</td>
+                <td>${p.nombre}</td>
+                <td class="right">${p.iva}%</td>
+                <td class="right">${(p.cantidad * p.precio).toFixed(2)}</td>
+            </tr>
+        `).join('')}
+    </table>
+
+    <div class="sep"></div>
+
+    <table>
+        ${ivasAg[4].base > 0 ? `
+            <tr><td>Base IVA 4%:</td><td class="right">${ivasAg[4].base.toFixed(2)} €</td></tr>
+            <tr><td>Cuota IVA 4%:</td><td class="right">${ivasAg[4].cuota.toFixed(2)} €</td></tr>
+        ` : ''}
+        ${ivasAg[10].base > 0 ? `
+            <tr><td>Base IVA 10%:</td><td class="right">${ivasAg[10].base.toFixed(2)} €</td></tr>
+            <tr><td>Cuota IVA 10%:</td><td class="right">${ivasAg[10].cuota.toFixed(2)} €</td></tr>
+        ` : ''}
+        ${ivasAg[21].base > 0 ? `
+            <tr><td>Base IVA 21%:</td><td class="right">${ivasAg[21].base.toFixed(2)} €</td></tr>
+            <tr><td>Cuota IVA 21%:</td><td class="right">${ivasAg[21].cuota.toFixed(2)} €</td></tr>
+        ` : ''}
+    </table>
+
+    <div class="sep"></div>
+
+    <table>
+        <tr class="total-final">
+            <td>TOTAL:</td>
+            <td class="right">${total.toFixed(2)} €</td>
+        </tr>
+    </table>
+
+    <div class="sep"></div>
+
+    <table>
+        <tr><td class="bold">Forma de pago:</td><td class="right">${datos.formaPago}</td></tr>
+    </table>
+
+    <div class="sep"></div>
+
+    <div class="center footer">
+        ¡Gracias por su visita!<br><br>
+        Conserve este ticket<br>
+        para cualquier reclamación<br><br>
+        ${EMPRESA.nombre}
+    </div>
+
+</body>
+</html>
+    `;
+
+    // Abrir ventana e imprimir
+    const ventana = window.open('', '_blank', 'width=400,height=600');
+    if (!ventana) {
+        alert('⚠️ Permite las ventanas emergentes para poder imprimir el ticket.');
+        return;
+    }
+    ventana.document.write(html);
+    ventana.document.close();
+    ventana.onload = () => {
+        ventana.focus();
+        ventana.print();
+        ventana.onafterprint = () => ventana.close();
+        // Fallback por si onafterprint no funciona
+        setTimeout(() => { try { ventana.close(); } catch(e){} }, 5000);
+    };
+}
