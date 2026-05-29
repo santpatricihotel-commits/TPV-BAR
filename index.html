@@ -3,20 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TPV - Hort Sant Patrici</title>
+<title>TPV - Sant Patrici Menorca</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, sans-serif;
-    }
-
-    body {
-        background: #f0f2f5;
-        height: 100vh;
-        overflow: hidden;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { background: #f0f2f5; height: 100vh; overflow: hidden; }
 
     .container {
         display: grid;
@@ -26,12 +16,11 @@
         padding: 10px;
     }
 
-    /* ====== CABECERA ====== */
     .header {
         grid-column: 1 / -1;
-        background: linear-gradient(135deg, #2e7d32, #66bb6a);
+        background: linear-gradient(135deg, #0f6b5e, #1a8b7a);
         color: white;
-        padding: 15px 25px;
+        padding: 12px 25px;
         border-radius: 10px;
         display: flex;
         justify-content: space-between;
@@ -39,16 +28,11 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .header h1 {
-        font-size: 22px;
-    }
+    .header-logo { display: flex; align-items: center; gap: 12px; }
+    .header-logo svg { height: 50px; width: auto; }
+    .header h1 { font-size: 20px; }
+    .header .info { font-size: 13px; text-align: right; }
 
-    .header .info {
-        font-size: 14px;
-        text-align: right;
-    }
-
-    /* ====== ZONA DE PRODUCTOS ====== */
     .productos-zona {
         background: white;
         border-radius: 10px;
@@ -59,24 +43,25 @@
 
     .categorias {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         margin-bottom: 15px;
         flex-wrap: wrap;
     }
 
     .categoria-btn {
-        padding: 8px 16px;
-        border: 2px solid #2e7d32;
+        padding: 7px 14px;
+        border: 2px solid #0f6b5e;
         background: white;
-        color: #2e7d32;
+        color: #0f6b5e;
         border-radius: 20px;
         cursor: pointer;
         font-weight: bold;
+        font-size: 13px;
         transition: all 0.2s;
     }
 
     .categoria-btn:hover, .categoria-btn.activa {
-        background: #2e7d32;
+        background: #0f6b5e;
         color: white;
     }
 
@@ -97,32 +82,22 @@
     }
 
     .producto-card:hover {
-        border-color: #2e7d32;
-        background: #e8f5e9;
+        border-color: #0f6b5e;
+        background: #e8f5f1;
         transform: translateY(-2px);
     }
 
     .producto-nombre {
         font-weight: bold;
-        font-size: 13px;
+        font-size: 12px;
         color: #333;
         margin-bottom: 6px;
         min-height: 32px;
     }
 
-    .producto-precio {
-        color: #2e7d32;
-        font-size: 16px;
-        font-weight: bold;
-    }
+    .producto-precio { color: #0f6b5e; font-size: 16px; font-weight: bold; }
+    .producto-iva { font-size: 10px; color: #666; margin-top: 4px; }
 
-    .producto-iva {
-        font-size: 11px;
-        color: #666;
-        margin-top: 4px;
-    }
-
-    /* ====== TICKET / CARRITO ====== */
     .ticket-zona {
         background: white;
         border-radius: 10px;
@@ -133,19 +108,15 @@
     }
 
     .ticket-header {
-        background: #1b5e20;
+        background: #0a4a40;
         color: white;
-        padding: 15px;
+        padding: 12px;
         text-align: center;
         font-weight: bold;
-        font-size: 16px;
+        font-size: 15px;
     }
 
-    .ticket-items {
-        flex: 1;
-        overflow-y: auto;
-        padding: 10px;
-    }
+    .ticket-items { flex: 1; overflow-y: auto; padding: 10px; }
 
     .ticket-item {
         display: grid;
@@ -156,12 +127,7 @@
         align-items: center;
     }
 
-    .item-cantidad {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
+    .item-cantidad { display: flex; align-items: center; gap: 4px; }
     .btn-cantidad {
         background: #e0e0e0;
         border: none;
@@ -171,36 +137,12 @@
         cursor: pointer;
         font-weight: bold;
     }
-
-    .btn-cantidad:hover {
-        background: #bdbdbd;
-    }
-
-    .item-cantidad span {
-        min-width: 24px;
-        text-align: center;
-        font-weight: bold;
-    }
-
-    .item-info {
-        font-size: 13px;
-    }
-
-    .item-nombre {
-        font-weight: bold;
-        color: #333;
-    }
-
-    .item-precio {
-        color: #666;
-        font-size: 11px;
-    }
-
-    .item-total {
-        font-weight: bold;
-        color: #2e7d32;
-        font-size: 14px;
-    }
+    .btn-cantidad:hover { background: #bdbdbd; }
+    .item-cantidad span { min-width: 24px; text-align: center; font-weight: bold; }
+    .item-info { font-size: 12px; }
+    .item-nombre { font-weight: bold; color: #333; }
+    .item-precio { color: #666; font-size: 11px; }
+    .item-total { font-weight: bold; color: #0f6b5e; font-size: 14px; }
 
     .btn-eliminar {
         background: #ef5350;
@@ -213,14 +155,8 @@
         margin-left: 4px;
     }
 
-    .ticket-vacio {
-        text-align: center;
-        color: #999;
-        padding: 40px 20px;
-        font-style: italic;
-    }
+    .ticket-vacio { text-align: center; color: #999; padding: 40px 20px; font-style: italic; }
 
-    /* ====== TOTALES ====== */
     .ticket-totales {
         background: #f5f5f5;
         padding: 12px 15px;
@@ -240,13 +176,12 @@
         justify-content: space-between;
         font-size: 22px;
         font-weight: bold;
-        color: #2e7d32;
+        color: #0f6b5e;
         padding: 8px 0 4px 0;
         border-top: 2px dashed #999;
         margin-top: 6px;
     }
 
-    /* ====== BOTONES ACCIONES ====== */
     .acciones {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -265,27 +200,12 @@
         transition: all 0.2s;
     }
 
-    .btn-cancelar {
-        background: #ef5350;
-        color: white;
-    }
-
+    .btn-cancelar { background: #ef5350; color: white; }
     .btn-cancelar:hover { background: #d32f2f; }
+    .btn-cobrar { background: #0f6b5e; color: white; font-size: 16px; }
+    .btn-cobrar:hover { background: #0a4a40; }
+    .btn-cobrar:disabled { background: #bdbdbd; cursor: not-allowed; }
 
-    .btn-cobrar {
-        background: #2e7d32;
-        color: white;
-        font-size: 16px;
-    }
-
-    .btn-cobrar:hover { background: #1b5e20; }
-
-    .btn-cobrar:disabled {
-        background: #bdbdbd;
-        cursor: not-allowed;
-    }
-
-    /* ====== MODAL COBRO ====== */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -296,7 +216,6 @@
         justify-content: center;
         align-items: center;
     }
-
     .modal-overlay.activo { display: flex; }
 
     .modal {
@@ -307,19 +226,15 @@
         max-width: 90%;
     }
 
-    .modal h2 {
-        color: #2e7d32;
-        margin-bottom: 15px;
-        text-align: center;
-    }
+    .modal h2 { color: #0f6b5e; margin-bottom: 15px; text-align: center; }
 
     .modal-total {
         text-align: center;
         font-size: 32px;
         font-weight: bold;
-        color: #2e7d32;
+        color: #0f6b5e;
         padding: 15px;
-        background: #e8f5e9;
+        background: #e8f5f1;
         border-radius: 8px;
         margin-bottom: 20px;
     }
@@ -343,18 +258,13 @@
     }
 
     .pago-btn:hover, .pago-btn.activo {
-        border-color: #2e7d32;
-        background: #e8f5e9;
-        color: #2e7d32;
+        border-color: #0f6b5e;
+        background: #e8f5f1;
+        color: #0f6b5e;
     }
 
-    .modal-acciones {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
+    .modal-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    /* ====== SCROLL ====== */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
@@ -365,96 +275,76 @@
 
 <div class="container">
 
-    <!-- CABECERA -->
     <div class="header">
-        <h1>🌿 Hort Sant Patrici - TPV</h1>
+        <div class="header-logo">
+            <!-- LOGO SVG SANT PATRICI -->
+            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="hatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
+                        <line x1="0" y1="0" x2="0" y2="4" stroke="white" stroke-width="1.5"/>
+                    </pattern>
+                </defs>
+                <!-- Casa con tejado -->
+                <path d="M 30 60 L 60 30 L 95 30 L 95 15 L 105 15 L 105 30 L 140 30 L 170 60 L 170 75 L 30 75 Z" fill="url(#hatch)" opacity="0.9"/>
+                <!-- Ventanas -->
+                <rect x="65" y="50" width="14" height="20" fill="white"/>
+                <rect x="93" y="50" width="14" height="20" fill="white"/>
+                <rect x="121" y="50" width="14" height="20" fill="white"/>
+                <!-- Texto -->
+                <text x="100" y="92" text-anchor="middle" font-family="serif" font-size="8" fill="white" letter-spacing="2">1 9 1 8</text>
+                <text x="100" y="105" text-anchor="middle" font-family="serif" font-size="13" font-weight="300" fill="white" letter-spacing="2">SANT PATRICI</text>
+            </svg>
+            <h1>TPV Snacks Bar</h1>
+        </div>
         <div class="info">
             <div id="fecha-hora">--/--/---- --:--</div>
             <div>Cajero: <strong id="cajero-actual">Admin</strong></div>
+            <div id="estado-sheets" style="font-size:11px; opacity:0.8;">📊 Sheets: ---</div>
         </div>
     </div>
 
-    <!-- ZONA PRODUCTOS -->
     <div class="productos-zona">
         <div class="categorias" id="categorias-lista"></div>
         <div class="productos-grid" id="productos-lista"></div>
     </div>
 
-    <!-- ZONA TICKET -->
     <div class="ticket-zona">
-        <div class="ticket-header">
-            🧾 TICKET ACTUAL
-        </div>
+        <div class="ticket-header">🧾 TICKET ACTUAL</div>
 
         <div class="ticket-items" id="ticket-items">
-            <div class="ticket-vacio">
-                Añade productos al ticket pulsando sobre ellos
-            </div>
+            <div class="ticket-vacio">Añade productos al ticket pulsando sobre ellos</div>
         </div>
 
         <div class="ticket-totales">
-            <div class="totales-fila">
-                <span>Base IVA 4%:</span>
-                <span id="base-4">0,00 €</span>
-            </div>
-            <div class="totales-fila">
-                <span>Base IVA 10%:</span>
-                <span id="base-10">0,00 €</span>
-            </div>
-            <div class="totales-fila">
-                <span>Base IVA 21%:</span>
-                <span id="base-21">0,00 €</span>
-            </div>
-            <div class="totales-fila">
-                <span>Total IVA:</span>
-                <span id="total-iva">0,00 €</span>
-            </div>
-            <div class="total-final">
-                <span>TOTAL:</span>
-                <span id="total-final">0,00 €</span>
-            </div>
+            <div class="totales-fila"><span>Base IVA 10%:</span><span id="base-10">0,00 €</span></div>
+            <div class="totales-fila"><span>Base IVA 21%:</span><span id="base-21">0,00 €</span></div>
+            <div class="totales-fila"><span>Total IVA:</span><span id="total-iva">0,00 €</span></div>
+            <div class="total-final"><span>TOTAL:</span><span id="total-final">0,00 €</span></div>
         </div>
 
         <div class="acciones">
-            <button class="btn-accion btn-cancelar" onclick="cancelarTicket()">
-                ❌ Cancelar
-            </button>
-            <button class="btn-accion btn-cobrar" id="btn-cobrar" onclick="abrirCobro()" disabled>
-                💰 Cobrar
-            </button>
+            <button class="btn-accion btn-cancelar" onclick="cancelarTicket()">❌ Cancelar</button>
+            <button class="btn-accion btn-cobrar" id="btn-cobrar" onclick="abrirCobro()" disabled>💰 Cobrar</button>
         </div>
     </div>
 
 </div>
 
-<!-- MODAL DE COBRO -->
 <div class="modal-overlay" id="modal-cobro">
     <div class="modal">
         <h2>💳 Forma de pago</h2>
         <div class="modal-total" id="modal-total">0,00 €</div>
         
         <div class="pago-opciones">
-            <button class="pago-btn" data-pago="EFECTIVO" onclick="seleccionarPago('EFECTIVO')">
-                💵 Efectivo
-            </button>
-            <button class="pago-btn" data-pago="TARJETA" onclick="seleccionarPago('TARJETA')">
-                💳 Tarjeta
-            </button>
-            <button class="pago-btn" data-pago="BIZUM" onclick="seleccionarPago('BIZUM')">
-                📱 Bizum
-            </button>
-            <button class="pago-btn" data-pago="TRANSFERENCIA" onclick="seleccionarPago('TRANSFERENCIA')">
-                🏦 Transferencia
-            </button>
+            <button class="pago-btn" data-pago="EFECTIVO" onclick="seleccionarPago('EFECTIVO')">💵 Efectivo</button>
+            <button class="pago-btn" data-pago="TARJETA" onclick="seleccionarPago('TARJETA')">💳 Tarjeta</button>
+            <button class="pago-btn" data-pago="BIZUM" onclick="seleccionarPago('BIZUM')">📱 Bizum</button>
+            <button class="pago-btn" data-pago="TRANSFERENCIA" onclick="seleccionarPago('TRANSFERENCIA')">🏦 Transferencia</button>
         </div>
 
         <div class="modal-acciones">
-            <button class="btn-accion btn-cancelar" onclick="cerrarModal()">
-                Cancelar
-            </button>
-            <button class="btn-accion btn-cobrar" id="btn-confirmar-cobro" onclick="confirmarCobro()" disabled>
-                ✅ Confirmar e Imprimir
-            </button>
+            <button class="btn-accion btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-accion btn-cobrar" id="btn-confirmar-cobro" onclick="confirmarCobro()" disabled>✅ Confirmar e Imprimir</button>
         </div>
     </div>
 </div>
