@@ -16,6 +16,9 @@ const EMPRESA = {
 // 🔗 CONFIGURACIÓN GOOGLE SHEETS
 const GOOGLE_SHEETS_URL = ""; // Pega aquí tu URL de Apps Script
 
+// 🖼️ LOGO DE LA EMPRESA (para el ticket)
+const LOGO_URL = "https://santpatrici.es/wp-content/uploads/sites/98/2026/02/Logo-8.png";
+
 // 🪑 CONFIGURACIÓN MESAS
 const CONFIG_MESAS = {
     salon: 12,         // Número de mesas en salón (T1...T12)
@@ -100,11 +103,17 @@ function actualizarFechaHora() {
         `${ahora.toLocaleDateString('es-ES')} ${ahora.toLocaleTimeString('es-ES')}`;
 }
 
+// ============== NAVEGACIÓN MÓVIL (modo camarero) ==============
+function toggleMobileTicket() {
+    document.body.classList.toggle('ver-ticket');
+}
+
 // ============== MESAS ==============
 function mostrarMesas() {
     vista = "mesas";
     mesaActiva = null;
     ticket = [];
+    document.body.classList.remove('ver-ticket'); // cerrar vista ticket en móvil
     document.getElementById('ticket-mesa-actual').style.display = 'none';
     
     const zona = document.getElementById('zona-principal');
@@ -305,6 +314,13 @@ function actualizarTotales() {
     document.getElementById('base-10').textContent = `${ivas[10].base.toFixed(2)} €`;
     document.getElementById('cuota-10').textContent = `${ivas[10].cuota.toFixed(2)} €`;
     document.getElementById('total-final').textContent = `${total.toFixed(2)} €`;
+
+    // Actualizar botón flotante (móvil)
+    const fabResumen = document.getElementById('fab-resumen');
+    if (fabResumen) {
+        const numItems = ticket.reduce((s, p) => s + p.cantidad, 0);
+        fabResumen.textContent = `${numItems} · ${total.toFixed(2)} €`;
+    }
 }
 
 // ============== TICKETS ABIERTOS ==============
@@ -691,6 +707,7 @@ function imprimirTicket(datos) {
         } catch(e) { console.error(e); }
     }
 
+    // Logo SVG (respaldo si la imagen no carga)
     const logoSVG = `
     <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" width="180" height="120">
         <defs>
@@ -706,6 +723,13 @@ function imprimirTicket(datos) {
         <text x="100" y="112" text-anchor="middle" font-family="serif" font-size="15" fill="#0f6b5e" letter-spacing="3">SANT PATRICI</text>
         <text x="100" y="125" text-anchor="middle" font-family="serif" font-size="8" fill="#0f6b5e" letter-spacing="4">MENORCA</text>
     </svg>`;
+
+    // Logo real (imagen). Si falla la carga, se muestra el SVG de respaldo.
+    const logoHTML = `
+        <img src="${LOGO_URL}" alt="${EMPRESA.nombre}"
+             style="max-width:170px; height:auto; display:block; margin:0 auto;"
+             onerror="this.style.display='none'; var fb=document.getElementById('logo-fallback'); if(fb){fb.style.display='block';}">
+        <div id="logo-fallback" style="display:none;">${logoSVG}</div>`;
 
     const html = `
 <!DOCTYPE html>
@@ -732,7 +756,7 @@ table td { padding: 1px 0; vertical-align: top; }
 .verifactu-info { font-size: 9px; text-align: center; margin-top: 4px; word-break: break-all; }
 </style></head><body>
 
-    <div class="center">${logoSVG}</div>
+    <div class="center">${logoHTML}</div>
     <div class="center empresa">${EMPRESA.nombre}</div>
     <div class="center">
         CIF: ${EMPRESA.cif}<br>

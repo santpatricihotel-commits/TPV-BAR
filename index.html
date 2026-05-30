@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>TPV - Sant Patrici Menorca</title>
 <!-- Librería para generar QR Veri*Factu -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
@@ -167,6 +167,22 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
     text-align: center;
     font-weight: bold;
     font-size: 15px;
+    position: relative;
+}
+.ticket-back-btn {
+    display: none;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 20px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 .ticket-mesa-actual {
     background: #ff9800;
@@ -250,6 +266,23 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
 .btn-cobrar { background: #0f6b5e; color: white; font-size: 14px; grid-column: 1 / -1; padding: 12px; }
 .btn-cobrar:hover { background: #0a4a40; }
 .btn-cobrar:disabled, .btn-accion:disabled { background: #bdbdbd !important; cursor: not-allowed; }
+
+/* ===== BOTÓN FLOTANTE TICKET (MÓVIL) ===== */
+.fab-ticket {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #0f6b5e;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    z-index: 800;
+}
 
 /* ===== MODAL ===== */
 .modal-overlay {
@@ -335,6 +368,113 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+
+/* =====================================================
+   ===== RESPONSIVE: TABLET (modo táctil grande) =====
+   ===================================================== */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .container { grid-template-columns: 1fr 360px; }
+    .productos-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .producto-card { padding: 18px 12px; }
+    .producto-nombre { font-size: 14px; min-height: 36px; }
+    .producto-precio { font-size: 19px; }
+    .mesas-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    .mesa-card .mesa-num { font-size: 26px; }
+    .mesa-card .mesa-info { font-size: 12px; }
+    .categoria-btn { padding: 11px 18px; font-size: 15px; }
+    .btn-accion { padding: 16px 6px; font-size: 14px; }
+    .btn-cobrar { padding: 18px; font-size: 16px; }
+    .btn-cantidad { width: 32px; height: 32px; font-size: 16px; }
+    .btn-eliminar { width: 28px; height: 28px; }
+    .ticket-item { padding: 12px 8px; }
+    .item-cantidad span { min-width: 28px; }
+    .item-nombre { font-size: 13px; }
+    .item-total { font-size: 15px; }
+    .header h1 { font-size: 16px; }
+}
+
+/* =====================================================
+   ===== RESPONSIVE: MÓVIL (modo camarero) =====
+   ===================================================== */
+@media (max-width: 768px) {
+    body { height: auto; overflow-y: auto; }
+    .container {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        gap: 8px;
+        padding: 8px;
+        padding-bottom: 84px; /* espacio para el botón flotante */
+    }
+    .header {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px;
+    }
+    .header-logo svg { height: 34px; }
+    .header-logo h1 { font-size: 14px; }
+    .header h1 { font-size: 14px; }
+    .header-info { font-size: 10px; text-align: left; }
+    .header-acciones { order: 3; width: 100%; display: flex; gap: 8px; }
+    .header-btn { flex: 1; padding: 12px 6px; font-size: 12px; }
+
+    .zona-principal { overflow: visible; padding: 12px; }
+    .productos-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .producto-card { padding: 18px 10px; }
+    .producto-nombre { font-size: 14px; min-height: 38px; }
+    .producto-precio { font-size: 18px; }
+    .mesas-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .mesa-card .mesa-num { font-size: 24px; }
+    .mesa-card .mesa-info { font-size: 11px; }
+    .categoria-btn { padding: 10px 16px; font-size: 14px; }
+    .titulo-zona { font-size: 16px; flex-wrap: wrap; gap: 8px; }
+
+    /* El ticket pasa a pantalla completa deslizable */
+    .ticket-zona {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        z-index: 900;
+        border-radius: 0;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    body.ver-ticket .ticket-zona { transform: translateX(0); }
+    .ticket-back-btn { display: block; }
+    .ticket-header { font-size: 17px; padding: 16px; }
+
+    .btn-accion { padding: 16px 6px; font-size: 15px; }
+    .btn-cobrar { padding: 18px; font-size: 17px; }
+    .btn-cantidad { width: 36px; height: 36px; font-size: 18px; }
+    .item-cantidad span { min-width: 32px; font-size: 16px; }
+    .btn-eliminar { width: 32px; height: 32px; }
+    .ticket-item { padding: 14px 8px; }
+    .item-nombre { font-size: 14px; }
+    .item-precio { font-size: 12px; }
+    .item-total { font-size: 16px; }
+    .total-final { font-size: 24px; }
+
+    /* Botón flotante para abrir el ticket */
+    .fab-ticket {
+        display: flex;
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        padding: 16px 20px;
+    }
+    body.ver-ticket .fab-ticket { display: none; }
+
+    /* Modales a casi pantalla completa */
+    .modal { width: 100%; padding: 18px; }
+    .modal-grande { width: 100%; }
+    .modal-total { font-size: 28px; }
+    .pago-btn { padding: 22px; font-size: 15px; }
+    .pago-opciones { gap: 8px; }
+}
 </style>
 </head>
 <body>
@@ -377,7 +517,10 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
 
     <!-- ========== TICKET ========== -->
     <div class="ticket-zona">
-        <div class="ticket-header">🧾 TICKET ACTUAL</div>
+        <div class="ticket-header">
+            <button class="ticket-back-btn" onclick="toggleMobileTicket()">←</button>
+            🧾 TICKET ACTUAL
+        </div>
         <div class="ticket-mesa-actual" id="ticket-mesa-actual" style="display:none;">Mesa: --</div>
         
         <div class="ticket-items" id="ticket-items">
@@ -400,6 +543,12 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
     </div>
 
 </div>
+
+<!-- ========== BOTÓN FLOTANTE VER TICKET (solo móvil) ========== -->
+<button class="fab-ticket" id="fab-ticket" onclick="toggleMobileTicket()">
+    <span>🧾 Ver ticket</span>
+    <span id="fab-resumen">0 · 0,00 €</span>
+</button>
 
 <!-- ========== MODAL COBRO ========== -->
 <div class="modal-overlay" id="modal-cobro">
@@ -454,6 +603,6 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
     </div>
 </div>
 
-<script src="app.js?v=20260529"></script>
+<script src="app.js?v=20260530"></script>
 </body>
 </html>
