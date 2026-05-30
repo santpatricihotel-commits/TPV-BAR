@@ -727,7 +727,7 @@ function imprimirTicket(datos) {
     // Logo real (imagen). Si falla la carga, se muestra el SVG de respaldo.
     const logoHTML = `
         <img src="${LOGO_URL}" alt="${EMPRESA.nombre}"
-             style="max-width:170px; height:auto; display:block; margin:0 auto;"
+             style="max-width:70px; height:auto; display:block; margin:0 auto;"
              onerror="this.style.display='none'; var fb=document.getElementById('logo-fallback'); if(fb){fb.style.display='block';}">
         <div id="logo-fallback" style="display:none;">${logoSVG}</div>`;
 
