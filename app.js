@@ -835,17 +835,17 @@ table td { padding: 1px 0; vertical-align: top; }
 </body></html>`;
 
     const ventana = window.open('', '_blank', 'width=400,height=600');
-    if (!ventana) { alert('⚠️ Permite las ventanas emergentes'); return; }
+    if (!ventana) { alert('⚠️ Permite las ventanas emergentes en el navegador'); return; }
+    ventana.document.open();
     ventana.document.write(html);
     ventana.document.close();
-    ventana.onload = () => {
-        ventana.focus();
-        setTimeout(() => {
+    setTimeout(() => {
+        try {
+            ventana.focus();
             ventana.print();
-            ventana.onafterprint = () => ventana.close();
-            setTimeout(() => { try { ventana.close(); } catch(e){} }, 5000);
-        }, 300);
-    };
+        } catch (e) { console.error(e); }
+        setTimeout(() => { try { ventana.close(); } catch(e){} }, 2000);
+    }, 600);
 }
 
 // ============== IMPRESIÓN CIERRE ==============
@@ -907,11 +907,14 @@ table td { padding: 2px 0; }
 </body></html>`;
 
     const ventana = window.open('', '_blank', 'width=400,height=600');
-    if (!ventana) return;
+    if (!ventana) { alert('⚠️ Permite las ventanas emergentes en el navegador'); return; }
+    ventana.document.open();
     ventana.document.write(html);
     ventana.document.close();
-    ventana.onload = () => {
-        ventana.focus();
-        setTimeout(() => { ventana.print(); }, 300);
-    };
+    setTimeout(() => {
+        try {
+            ventana.focus();
+            ventana.print();
+        } catch (e) { console.error(e); }
+    }, 600);
 }
