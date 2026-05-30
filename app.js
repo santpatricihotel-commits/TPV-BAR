@@ -14,8 +14,7 @@ const EMPRESA = {
 };
 
 // 🔗 CONFIGURACIÓN GOOGLE SHEETS
-const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwsrWIOgtatEivp90KJZTT1iQJNuzej_2aV1RT7W0A26voI0WaOnLO3W-PZhZs4c9wh/exec";
-
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyZmFleBzR38-UnleZOycIFwKiKTQUvBd0oWkSb2zeEbg0iI6x1OPHmiauyZTxZ_7qJ/exec";
 // 🖼️ LOGO DE LA EMPRESA (para el ticket)
 const LOGO_URL = "https://santpatrici.es/wp-content/uploads/sites/98/2026/02/Logo-8.png";
 
