@@ -159,6 +159,7 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
     flex-direction: column;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     overflow: hidden;
+    min-height: 0;
 }
 .ticket-header {
     background: #0a4a40;
@@ -391,6 +392,23 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
     .item-nombre { font-size: 13px; }
     .item-total { font-size: 15px; }
     .header h1 { font-size: 16px; }
+
+    /* 👇👇👇 AÑADE TODO ESTO 👇👇👇 */
+    .acciones {
+        grid-template-columns: repeat(4, 1fr);
+        padding: 6px;
+        gap: 5px;
+    }
+    .btn-accion { padding: 12px 4px; font-size: 13px; }
+    .btn-cobrar {
+        grid-column: 1 / -1;
+        padding: 14px;
+        font-size: 15px;
+    }
+    .ticket-totales { padding: 6px 12px; }
+    .total-final { font-size: 18px; padding: 4px 0; }
+    .ticket-header { padding: 8px; font-size: 14px; }
+    /* 👆👆👆 HASTA AQUÍ 👆👆👆 */
 }
 
 /* =====================================================
