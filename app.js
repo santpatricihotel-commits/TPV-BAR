@@ -852,7 +852,10 @@ function imprimirTicket(datos) {
         enviarARawBT(texto);
     } else {
         // 💻 PC → ventana HTML con impresión
-        imprimirTicketHTML(datos);
+        function imprimirTicket(datos) {
+    // Guardar en histórico (solo si NO es prefactura)
+    if (!datos.prefactura && !datos.esCopia) {
+        guardarEnHistorico(datos);
     }
 }
 
@@ -1132,21 +1135,38 @@ window.addEventListener('load', function() {
 
 </body></html>`;
 
-    const ventana = window.open('', '_blank', 'width=400,height=750');
-    if (!ventana) {
-        alert('⚠️ Permite las ventanas emergentes en el navegador');
-        return;
-    }
-    ventana.document.open();
-    ventana.document.write(html);
-    ventana.document.close();
+   // ===== IMPRESIÓN VÍA IFRAME OCULTO (no abre pestañas) =====
+    let iframe = document.getElementById('print-iframe');
+    if (iframe) iframe.remove();
+
+    iframe = document.createElement('iframe');
+    iframe.id = 'print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
     setTimeout(() => {
         try {
-            ventana.focus();
-            ventana.print();
-        } catch (e) { console.error(e); }
-        setTimeout(() => { try { ventana.close(); } catch(e){} }, 2000);
-    }, 1200); // Más tiempo para que cargue el logo y QR
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        } catch (e) {
+            console.error('Error al imprimir:', e);
+            alert('No se pudo imprimir: ' + e.message);
+        }
+        setTimeout(() => {
+            try { iframe.remove(); } catch(e){}
+        }, 3000);
+    }, 1500);
 }
 
 // ============== IMPRESIÓN RAWBT (MÓVIL) ==============
@@ -1384,5 +1404,5 @@ function reimprimirHistorico(idx) {
         fecha: new Date(t.fecha),
         productos: t.productos
     };
-    imprimirTicket({ ...datos, prefactura: true }); // se imprime como copia (no se duplica en histórico)
+    imprimirTicket({ ...datos, prefactura: false, esCopia: true }); // se imprime como copia (no se duplica en histórico)
 }
