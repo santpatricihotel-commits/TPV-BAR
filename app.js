@@ -97,6 +97,156 @@ document.addEventListener('DOMContentLoaded', () => {
     mostrarMesas();
 });
 
+// ============================================================
+// ===== IMPRESIÓN VÍA RAWBT (Netum Bluetooth) ================
+// ============================================================
+const ANCHO_TICKET = 32; // 32 para 58mm, 48 para 80mm
+
+function rbtLinea(c = '-') { return c.repeat(ANCHO_TICKET); }
+function rbtCentrar(txt) {
+    if (txt.length >= ANCHO_TICKET) return txt;
+    const esp = Math.floor((ANCHO_TICKET - txt.length) / 2);
+    return ' '.repeat(esp) + txt;
+}
+function rbtFila(izq, der) {
+    izq = String(izq); der = String(der);
+    if (izq.length + der.length >= ANCHO_TICKET) {
+        izq = izq.substring(0, ANCHO_TICKET - der.length - 1);
+    }
+    const esp = ANCHO_TICKET - izq.length - der.length;
+    return izq + ' '.repeat(esp) + der;
+}
+function rbtProducto(cantidad, nombre, total) {
+    const totalStr = total.toFixed(2);
+    const prefijo = cantidad + 'x ';
+    const maxNombre = ANCHO_TICKET - prefijo.length - totalStr.length - 1;
+    let n = nombre.length > maxNombre ? nombre.substring(0, maxNombre) : nombre;
+    const esp = ANCHO_TICKET - prefijo.length - n.length - totalStr.length;
+    return prefijo + n + ' '.repeat(esp) + totalStr;
+}
+
+function enviarARawBT(texto) {
+    try {
+        // Codifica respetando UTF-8 (acentos y ñ)
+        const base64 = btoa(unescape(encodeURIComponent(texto)));
+        const url = 'rawbt:base64,' + base64;
+        window.location.href = url;
+        return true;
+    } catch (e) {
+        console.error('Error RawBT:', e);
+        alert('No se pudo enviar a RawBT.\n' + e.message);
+        return false;
+    }
+}
+
+function construirTextoTicket(datos) {
+    const f = datos.fecha;
+    const fechaStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}`;
+    const esPref = datos.prefactura === true;
+
+    let t = '';
+    t += rbtCentrar(EMPRESA.nombre) + '\n';
+    t += rbtCentrar('CIF: ' + EMPRESA.cif) + '\n';
+    t += rbtCentrar(EMPRESA.direccion) + '\n';
+    t += rbtCentrar('Tel: ' + EMPRESA.telefono) + '\n';
+    t += rbtLinea('=') + '\n';
+
+    if (esPref) {
+        t += rbtCentrar('*** PRE-FACTURA ***') + '\n';
+        t += rbtCentrar('NO ES UN TICKET') + '\n';
+        t += rbtLinea('=') + '\n';
+    }
+
+    t += rbtFila(esPref ? 'Doc:' : 'Ticket:', datos.numeroTicket) + '\n';
+    t += rbtFila('Fecha:', fechaStr + ' ' + horaStr) + '\n';
+    t += rbtFila('Cajero:', datos.cajero) + '\n';
+    if (datos.mesa) t += rbtFila('Mesa:', datos.mesa) + '\n';
+    t += rbtLinea() + '\n';
+
+    datos.productos.forEach(p => {
+        t += rbtProducto(p.cantidad, p.nombre, p.cantidad * p.precio) + '\n';
+    });
+
+    t += rbtLinea() + '\n';
+
+    const iv = datos.ivas;
+    if (iv[10] && iv[10].base > 0) {
+        t += rbtFila('Base 10%:', iv[10].base.toFixed(2) + ' E') + '\n';
+        t += rbtFila('IVA 10%:',  iv[10].cuota.toFixed(2) + ' E') + '\n';
+    }
+    if (iv[21] && iv[21].base > 0) {
+        t += rbtFila('Base 21%:', iv[21].base.toFixed(2) + ' E') + '\n';
+        t += rbtFila('IVA 21%:',  iv[21].cuota.toFixed(2) + ' E') + '\n';
+    }
+
+    t += rbtLinea('=') + '\n';
+    t += rbtFila('TOTAL:', datos.total.toFixed(2) + ' EUR') + '\n';
+    t += rbtLinea('=') + '\n';
+    t += rbtFila('Pago:', datos.formaPago) + '\n';
+
+    if (!esPref && datos.hashVerifactu) {
+        t += rbtLinea() + '\n';
+        t += rbtCentrar('VERI*FACTU') + '\n';
+        t += 'Hash: ' + datos.hashVerifactu.substring(0, 20) + '\n';
+        if (datos.urlVerifactu) {
+            t += datos.urlVerifactu.substring(0, ANCHO_TICKET) + '\n';
+            if (datos.urlVerifactu.length > ANCHO_TICKET) {
+                t += datos.urlVerifactu.substring(ANCHO_TICKET, ANCHO_TICKET*2) + '\n';
+            }
+        }
+    }
+
+    t += rbtLinea() + '\n';
+    if (esPref) {
+        t += rbtCentrar('Documento informativo') + '\n';
+        t += rbtCentrar('Solicite ticket al pagar') + '\n';
+    } else {
+        t += rbtCentrar('Gracias por su visita') + '\n';
+        t += rbtCentrar('Moltes gracies!') + '\n';
+    }
+    t += '\n\n\n'; // alimentación final
+    return t;
+}
+
+function construirTextoCierre(stats, fechaCierre) {
+    const fStr = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    let t = '';
+    t += rbtCentrar(EMPRESA.nombre) + '\n';
+    t += rbtCentrar('CIF: ' + EMPRESA.cif) + '\n';
+    t += rbtLinea('=') + '\n';
+    t += rbtCentrar('*** CIERRE DE CAJA ***') + '\n';
+    t += rbtLinea('=') + '\n';
+    t += rbtFila('Apertura:', fStr(new Date(fechaApertura))) + '\n';
+    t += rbtFila('Cierre:', fStr(fechaCierre)) + '\n';
+    t += rbtFila('Cajero:', EMPRESA.cajero) + '\n';
+    t += rbtFila('Tickets:', stats.numTickets) + '\n';
+    t += rbtLinea() + '\n';
+    t += rbtCentrar('FORMAS DE PAGO') + '\n';
+    t += rbtFila('Efectivo:', stats.efectivo.toFixed(2) + ' E') + '\n';
+    t += rbtFila('Tarjeta:', stats.tarjeta.toFixed(2) + ' E') + '\n';
+    t += rbtFila('Bizum:', stats.bizum.toFixed(2) + ' E') + '\n';
+    t += rbtFila('Transfer:', stats.transferencia.toFixed(2) + ' E') + '\n';
+    t += rbtLinea() + '\n';
+    t += rbtCentrar('DESGLOSE IVA') + '\n';
+    t += rbtFila('Base 10%:', stats.base10.toFixed(2) + ' E') + '\n';
+    t += rbtFila('Cuota 10%:', stats.cuota10.toFixed(2) + ' E') + '\n';
+    if (stats.base21 > 0) {
+        t += rbtFila('Base 21%:', stats.base21.toFixed(2) + ' E') + '\n';
+        t += rbtFila('Cuota 21%:', stats.cuota21.toFixed(2) + ' E') + '\n';
+    }
+    t += rbtLinea() + '\n';
+    t += rbtCentrar('TOP PRODUCTOS') + '\n';
+    stats.topProductos.forEach(p => {
+        t += rbtProducto(p.cantidad, p.nombre, p.total) + '\n';
+    });
+    t += rbtLinea('=') + '\n';
+    t += rbtFila('TOTAL DIA:', stats.total.toFixed(2) + ' EUR') + '\n';
+    t += rbtLinea('=') + '\n';
+    t += '\n\n\n';
+    return t;
+}
+
 function actualizarFechaHora() {
     const ahora = new Date();
     document.getElementById('fecha-hora').textContent =
@@ -687,155 +837,103 @@ function enviarAGoogleSheets(datos) {
     }).catch(err => console.error('Error Sheets:', err));
 }
 
-// ============== IMPRESIÓN TICKET ==============
+// ============== IMPRESIÓN TICKET (PRINCIPAL) ==============
 function imprimirTicket(datos) {
-    const f = datos.fecha;
-    const fechaStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
-    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}:${String(f.getSeconds()).padStart(2,'0')}`;
-    const ivasAg = datos.ivas;
-    const total = datos.total;
-    const esPrefactura = datos.prefactura === true;
-
-    // QR Veri*Factu (sólo en tickets reales)
-    let qrHTML = '';
-    if (!esPrefactura && datos.urlVerifactu && typeof qrcode !== 'undefined') {
-        try {
-            const qr = qrcode(0, 'M');
-            qr.addData(datos.urlVerifactu);
-            qr.make();
-            qrHTML = qr.createImgTag(3, 4);
-        } catch(e) { console.error(e); }
+    // Guardar en histórico (solo si NO es prefactura)
+    if (!datos.prefactura) {
+        guardarEnHistorico(datos);
     }
 
-    // Logo SVG (respaldo si la imagen no carga)
-    const logoSVG = `
-    <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" width="180" height="120">
-        <defs>
-            <pattern id="hatchT" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
-                <line x1="0" y1="0" x2="0" y2="4" stroke="#0f6b5e" stroke-width="1.5"/>
-            </pattern>
-        </defs>
-        <path d="M 30 60 L 60 30 L 95 30 L 95 15 L 105 15 L 105 30 L 140 30 L 170 60 L 170 75 L 30 75 Z" fill="url(#hatchT)"/>
-        <rect x="65" y="50" width="14" height="20" fill="white"/>
-        <rect x="93" y="50" width="14" height="20" fill="white"/>
-        <rect x="121" y="50" width="14" height="20" fill="white"/>
-        <text x="100" y="95" text-anchor="middle" font-family="serif" font-size="9" fill="#0f6b5e" letter-spacing="3">1 9 1 8</text>
-        <text x="100" y="112" text-anchor="middle" font-family="serif" font-size="15" fill="#0f6b5e" letter-spacing="3">SANT PATRICI</text>
-        <text x="100" y="125" text-anchor="middle" font-family="serif" font-size="8" fill="#0f6b5e" letter-spacing="4">MENORCA</text>
-    </svg>`;
+    const esMovil = /Android/i.test(navigator.userAgent);
 
-    // Logo real (imagen). Si falla la carga, se muestra el SVG de respaldo.
-    const logoHTML = `
-        <img src="${LOGO_URL}" alt="${EMPRESA.nombre}"
-             style="max-width:70px; height:auto; display:block; margin:0 auto;"
-             onerror="this.style.display='none'; var fb=document.getElementById('logo-fallback'); if(fb){fb.style.display='block';}">
-        <div id="logo-fallback" style="display:none;">${logoSVG}</div>`;
+    if (esMovil) {
+        // 📱 MÓVIL → usar RawBT (texto plano, más fiable)
+        const texto = construirTextoTicket(datos);
+        enviarARawBT(texto);
+    } else {
+        // 💻 PC → ventana HTML con impresión
+        imprimirTicketHTML(datos);
+    }
+}
+
+function imprimirTicketHTML(datos) {
+    const f = datos.fecha;
+    const fechaStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}`;
+    const esPref = datos.prefactura === true;
+    const iv = datos.ivas;
 
     const html = `
-<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Ticket ${datos.numeroTicket}</title>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ticket ${datos.numeroTicket}</title>
 <style>
 @page { size: 80mm auto; margin: 0; }
-@media print { html, body { width: 80mm; } }
-body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; margin: 0; padding: 4mm; color: #000; }
-.center { text-align: center; }
-.right { text-align: right; }
-.bold { font-weight: bold; }
-.sep { border-top: 1px dashed #000; margin: 5px 0; }
+body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 4mm; }
+.c { text-align: center; }
+.r { text-align: right; }
+.b { font-weight: bold; }
+.sep { border-top: 1px dashed #000; margin: 4px 0; }
+.dsep { border-top: 2px solid #000; margin: 4px 0; }
 table { width: 100%; border-collapse: collapse; }
-table td { padding: 1px 0; vertical-align: top; }
-.empresa { font-size: 13px; font-weight: bold; }
-.total-final { font-size: 18px; font-weight: bold; }
-.footer { font-size: 11px; margin-top: 10px; }
-.prefactura-aviso {
-    text-align: center; background: #000; color: #fff; padding: 6px;
-    font-weight: bold; margin: 5px 0; font-size: 13px;
-}
-.qr-zona { text-align: center; margin: 8px 0; }
-.qr-zona img { display: block; margin: 0 auto; }
-.verifactu-info { font-size: 9px; text-align: center; margin-top: 4px; word-break: break-all; }
+table td { padding: 1px 0; }
+.tit { font-size: 14px; font-weight: bold; }
+.tot { font-size: 16px; font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 5px 0; }
+.pref { background: #ffe; padding: 6px; text-align: center; font-weight: bold; border: 2px dashed #000; margin: 6px 0; }
 </style></head><body>
-
-    <div class="center">${logoHTML}</div>
-    <div class="center empresa">${EMPRESA.nombre}</div>
-    <div class="center">
-        CIF: ${EMPRESA.cif}<br>
-        ${EMPRESA.direccion}<br>
-        Tel: ${EMPRESA.telefono}
-    </div>
-
-    ${esPrefactura ? '<div class="prefactura-aviso">PRE-FACTURA · NO ES UN TICKET</div>' : ''}
-
-    <div class="sep"></div>
-
-    <table>
-        <tr><td class="bold">${esPrefactura ? 'Doc:' : 'Ticket Nº:'}</td><td class="right">${datos.numeroTicket}</td></tr>
-        <tr><td class="bold">Fecha:</td><td class="right">${fechaStr} ${horaStr}</td></tr>
-        <tr><td class="bold">Cajero:</td><td class="right">${datos.cajero}</td></tr>
-        ${datos.mesa ? `<tr><td class="bold">Mesa:</td><td class="right">${datos.mesa}</td></tr>` : ''}
-    </table>
-
-    <div class="sep"></div>
-
-    <table>
-        <tr class="bold">
-            <td style="width:10%">Ud</td>
-            <td style="width:50%">Descripción</td>
-            <td style="width:15%" class="right">IVA</td>
-            <td style="width:25%" class="right">Total</td>
-        </tr>
-    </table>
-    <div class="sep"></div>
-    <table>
-        ${datos.productos.map(p => `
-            <tr>
-                <td>${p.cantidad}</td>
-                <td>${p.nombre}</td>
-                <td class="right">${p.iva}%</td>
-                <td class="right">${(p.cantidad * p.precio).toFixed(2)}</td>
-            </tr>
-        `).join('')}
-    </table>
-
-    <div class="sep"></div>
-
-    <table>
-        ${ivasAg[10].base > 0 ? `
-            <tr><td>Base IVA 10%:</td><td class="right">${ivasAg[10].base.toFixed(2)} €</td></tr>
-            <tr><td>Cuota IVA 10%:</td><td class="right">${ivasAg[10].cuota.toFixed(2)} €</td></tr>` : ''}
-        ${ivasAg[21].base > 0 ? `
-            <tr><td>Base IVA 21%:</td><td class="right">${ivasAg[21].base.toFixed(2)} €</td></tr>
-            <tr><td>Cuota IVA 21%:</td><td class="right">${ivasAg[21].cuota.toFixed(2)} €</td></tr>` : ''}
-    </table>
-
-    <div class="sep"></div>
-
-    <table><tr class="total-final"><td>TOTAL:</td><td class="right">${total.toFixed(2)} €</td></tr></table>
-
-    <div class="sep"></div>
-
-    <table><tr><td class="bold">Forma de pago:</td><td class="right">${datos.formaPago}</td></tr></table>
-
-    ${!esPrefactura && qrHTML ? `
-        <div class="sep"></div>
-        <div class="qr-zona">
-            ${qrHTML}
-            <div class="bold" style="margin-top:4px;">Factura verificable VERI*FACTU</div>
-            <div class="verifactu-info">Hash: ${(datos.hashVerifactu || '').substring(0, 16)}...</div>
-        </div>
-    ` : ''}
-
-    <div class="sep"></div>
-
-    <div class="center footer">
-        ${esPrefactura ? '<strong>DOCUMENTO INFORMATIVO</strong><br>Este documento NO sustituye al ticket.<br>Solicite ticket de cobro al pagar.' : '¡Gracias por su visita!<br>Moltes gràcies!<br><br>Conserve este ticket<br>para cualquier reclamación'}
-        <br><br>${EMPRESA.nombre}
-    </div>
-
+<div class="c b tit">${EMPRESA.nombre}</div>
+<div class="c">CIF: ${EMPRESA.cif}</div>
+<div class="c">${EMPRESA.direccion}</div>
+<div class="c">Tel: ${EMPRESA.telefono}</div>
+<div class="dsep"></div>
+${esPref ? '<div class="pref">*** PRE-FACTURA ***<br><small>NO ES UN TICKET</small></div>' : ''}
+<table>
+<tr><td>${esPref ? 'Doc:' : 'Ticket:'}</td><td class="r b">${datos.numeroTicket}</td></tr>
+<tr><td>Fecha:</td><td class="r">${fechaStr} ${horaStr}</td></tr>
+<tr><td>Cajero:</td><td class="r">${datos.cajero}</td></tr>
+${datos.mesa ? `<tr><td>Mesa:</td><td class="r b">${datos.mesa}</td></tr>` : ''}
+</table>
+<div class="sep"></div>
+<table>
+${datos.productos.map(p => `
+<tr><td>${p.cantidad}x ${p.nombre}</td><td class="r">${(p.cantidad*p.precio).toFixed(2)} €</td></tr>
+`).join('')}
+</table>
+<div class="sep"></div>
+<table>
+${iv[10] && iv[10].base > 0 ? `
+<tr><td>Base 10%:</td><td class="r">${iv[10].base.toFixed(2)} €</td></tr>
+<tr><td>Cuota 10%:</td><td class="r">${iv[10].cuota.toFixed(2)} €</td></tr>` : ''}
+${iv[21] && iv[21].base > 0 ? `
+<tr><td>Base 21%:</td><td class="r">${iv[21].base.toFixed(2)} €</td></tr>
+<tr><td>Cuota 21%:</td><td class="r">${iv[21].cuota.toFixed(2)} €</td></tr>` : ''}
+</table>
+<table><tr class="tot"><td>TOTAL:</td><td class="r">${datos.total.toFixed(2)} €</td></tr></table>
+<table><tr><td>Pago:</td><td class="r b">${datos.formaPago}</td></tr></table>
+${!esPref && datos.hashVerifactu ? `
+<div class="sep"></div>
+<div class="c b">VERI*FACTU</div>
+<div class="c" style="font-size:9px;">Hash: ${datos.hashVerifactu.substring(0,20)}...</div>
+<div id="qr-cont" class="c" style="margin:5px 0;"></div>
+` : ''}
+<div class="sep"></div>
+<div class="c">${esPref ? 'Documento informativo<br>Solicite ticket al pagar' : 'Gracies! Gracias!<br>Conserve este ticket'}</div>
+${!esPref && datos.hashVerifactu ? `
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>
+<script>
+try {
+    var qr = qrcode(0, 'M');
+    qr.addData(${JSON.stringify(datos.urlVerifactu || '')});
+    qr.make();
+    document.getElementById('qr-cont').innerHTML = qr.createImgTag(3, 4);
+} catch(e) { console.error(e); }
+<\/script>
+` : ''}
 </body></html>`;
 
-    const ventana = window.open('', '_blank', 'width=400,height=600');
-    if (!ventana) { alert('⚠️ Permite las ventanas emergentes en el navegador'); return; }
+    const ventana = window.open('', '_blank', 'width=400,height=700');
+    if (!ventana) {
+        alert('⚠️ Permite las ventanas emergentes en el navegador');
+        return;
+    }
     ventana.document.open();
     ventana.document.write(html);
     ventana.document.close();
@@ -845,7 +943,102 @@ table td { padding: 1px 0; vertical-align: top; }
             ventana.print();
         } catch (e) { console.error(e); }
         setTimeout(() => { try { ventana.close(); } catch(e){} }, 2000);
-    }, 600);
+    }, 800);
+}
+
+// ============== IMPRESIÓN RAWBT (MÓVIL) ==============
+function imprimirConRawBT(datos) {
+    const f = datos.fecha;
+    const fechaStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}:${String(f.getSeconds()).padStart(2,'0')}`;
+    const ivasAg = datos.ivas;
+    const esPrefactura = datos.prefactura === true;
+    const ANCHO = 32; // caracteres por línea (impresora 58mm). Usa 48 para 80mm.
+
+    // --- Helpers de formato texto ---
+    const centrar = (txt) => {
+        if (txt.length >= ANCHO) return txt;
+        const espacios = Math.floor((ANCHO - txt.length) / 2);
+        return ' '.repeat(espacios) + txt;
+    };
+    const linea = (char = '-') => char.repeat(ANCHO);
+    const dosCol = (izq, der) => {
+        const espacio = ANCHO - izq.length - der.length;
+        return izq + ' '.repeat(Math.max(1, espacio)) + der;
+    };
+    const cortar = (txt, max) => txt.length > max ? txt.substring(0, max) : txt;
+
+    // --- Construir el ticket en texto plano ---
+    let t = '';
+    t += centrar(EMPRESA.nombre) + '\n';
+    t += centrar('CIF: ' + EMPRESA.cif) + '\n';
+    t += centrar(EMPRESA.direccion) + '\n';
+    t += centrar('Tel: ' + EMPRESA.telefono) + '\n';
+
+    if (esPrefactura) {
+        t += linea('=') + '\n';
+        t += centrar('PRE-FACTURA') + '\n';
+        t += centrar('NO ES UN TICKET') + '\n';
+        t += linea('=') + '\n';
+    } else {
+        t += linea() + '\n';
+    }
+
+    t += dosCol(esPrefactura ? 'Doc:' : 'Ticket:', datos.numeroTicket) + '\n';
+    t += dosCol('Fecha:', fechaStr + ' ' + horaStr.substring(0,5)) + '\n';
+    t += dosCol('Cajero:', datos.cajero) + '\n';
+    if (datos.mesa) t += dosCol('Mesa:', datos.mesa) + '\n';
+
+    t += linea() + '\n';
+    t += dosCol('Ud Descripcion', 'IVA  Total') + '\n';
+    t += linea() + '\n';
+
+    datos.productos.forEach(p => {
+        const ud = String(p.cantidad).padEnd(3);
+        const nombre = cortar(p.nombre, ANCHO - 14);
+        const total = (p.cantidad * p.precio).toFixed(2);
+        const der = `${p.iva}%`.padStart(4) + ' ' + total.padStart(6);
+        t += dosCol(ud + nombre, der) + '\n';
+    });
+
+    t += linea() + '\n';
+
+    if (ivasAg[10].base > 0) {
+        t += dosCol('Base IVA 10%:', ivasAg[10].base.toFixed(2) + ' E') + '\n';
+        t += dosCol('Cuota IVA 10%:', ivasAg[10].cuota.toFixed(2) + ' E') + '\n';
+    }
+    if (ivasAg[21].base > 0) {
+        t += dosCol('Base IVA 21%:', ivasAg[21].base.toFixed(2) + ' E') + '\n';
+        t += dosCol('Cuota IVA 21%:', ivasAg[21].cuota.toFixed(2) + ' E') + '\n';
+    }
+
+    t += linea() + '\n';
+    t += dosCol('TOTAL:', datos.total.toFixed(2) + ' EUR') + '\n';
+    t += linea() + '\n';
+    t += dosCol('F. Pago:', datos.formaPago) + '\n';
+
+    if (!esPrefactura && datos.hashVerifactu) {
+        t += linea() + '\n';
+        t += centrar('VERI*FACTU') + '\n';
+        t += centrar('Hash: ' + datos.hashVerifactu.substring(0, 16)) + '\n';
+    }
+
+    t += linea() + '\n';
+    if (esPrefactura) {
+        t += centrar('DOCUMENTO INFORMATIVO') + '\n';
+        t += centrar('No sustituye al ticket') + '\n';
+    } else {
+        t += centrar('Gracies! Gracias!') + '\n';
+        t += centrar('Conserve este ticket') + '\n';
+    }
+    t += '\n\n\n'; // alimentación de papel
+
+    // --- Enviar a RawBT mediante intent:// ---
+    const encoded = encodeURIComponent(t);
+    const intentURL = `intent:${encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+
+    // Abrimos el intent (Android lo redirige a la app RawBT)
+    window.location.href = intentURL;
 }
 
 // ============== IMPRESIÓN CIERRE ==============
@@ -906,15 +1099,87 @@ table td { padding: 2px 0; }
     <div class="center" style="margin-top:15px;">__________________<br>Firma responsable</div>
 </body></html>`;
 
-    const ventana = window.open('', '_blank', 'width=400,height=600');
-    if (!ventana) { alert('⚠️ Permite las ventanas emergentes en el navegador'); return; }
-    ventana.document.open();
-    ventana.document.write(html);
-    ventana.document.close();
-    setTimeout(() => {
-        try {
-            ventana.focus();
-            ventana.print();
-        } catch (e) { console.error(e); }
-    }, 600);
+    // 🔀 Detectar dispositivo: móvil → RawBT, PC → impresión HTML
+    const esMovil = /Android/i.test(navigator.userAgent);
+
+    if (esMovil) {
+        // 📱 MÓVIL ANDROID → enviar a RawBT (impresora térmica Bluetooth)
+        const texto = construirTextoCierre(stats, fechaCierre);
+        enviarARawBT(texto);
+    } else {
+        // 💻 PC → ventana HTML clásica
+        const ventana = window.open('', '_blank', 'width=400,height=600');
+        if (!ventana) { alert('⚠️ Permite las ventanas emergentes en el navegador'); return; }
+        ventana.document.open();
+        ventana.document.write(html);
+        ventana.document.close();
+        setTimeout(() => {
+            try {
+                ventana.focus();
+                ventana.print();
+            } catch (e) { console.error(e); }
+            setTimeout(() => { try { ventana.close(); } catch(e){} }, 2000);
+        }, 600);
+    }
+}
+
+// ============== HISTÓRICO DE TICKETS ==============
+let historicoTickets = JSON.parse(localStorage.getItem('tpv_historicoTickets') || '[]');
+
+function guardarEnHistorico(datos) {
+    // Convertir fecha a string para guardar en localStorage
+    const ticketHist = {
+        numeroTicket: datos.numeroTicket,
+        fecha: datos.fecha.toISOString(),
+        cajero: datos.cajero,
+        mesa: datos.mesa,
+        productos: datos.productos.map(p => ({
+            id: p.id, nombre: p.nombre, cantidad: p.cantidad, precio: p.precio, iva: p.iva
+        })),
+        formaPago: datos.formaPago,
+        ivas: datos.ivas,
+        total: datos.total,
+        hashVerifactu: datos.hashVerifactu,
+        urlVerifactu: datos.urlVerifactu
+    };
+    historicoTickets.unshift(ticketHist); // los más recientes arriba
+    // Limitar a últimos 500 para no saturar
+    if (historicoTickets.length > 500) historicoTickets = historicoTickets.slice(0, 500);
+    localStorage.setItem('tpv_historicoTickets', JSON.stringify(historicoTickets));
+}
+
+function abrirHistorico() {
+    const cont = document.getElementById('historico-lista');
+    if (historicoTickets.length === 0) {
+        cont.innerHTML = `<p style="text-align:center;color:#999;padding:30px;">No hay tickets en el histórico.</p>`;
+    } else {
+        cont.innerHTML = historicoTickets.map((t, idx) => {
+            const f = new Date(t.fecha);
+            const fStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()} ${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}`;
+            return `
+                <div class="ticket-abierto-card" style="border-color:#0f6b5e;background:#e8f5f1;">
+                    <div style="flex:1;">
+                        <strong>${t.numeroTicket}</strong><br>
+                        <small>${fStr} · ${t.mesa || '-'} · ${t.formaPago}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:18px;font-weight:bold;color:#0f6b5e;">${t.total.toFixed(2)} €</div>
+                        <button class="btn-accion btn-guardar" style="padding:6px 10px;font-size:11px;margin-top:4px;" onclick="reimprimirHistorico(${idx})">🖨️ Reimprimir</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    document.getElementById('modal-historico').classList.add('activo');
+}
+
+function reimprimirHistorico(idx) {
+    const t = historicoTickets[idx];
+    if (!t) return;
+    const datos = {
+        ...t,
+        fecha: new Date(t.fecha),
+        productos: t.productos
+    };
+    imprimirTicket({ ...datos, prefactura: true }); // se imprime como copia (no se duplica en histórico)
 }

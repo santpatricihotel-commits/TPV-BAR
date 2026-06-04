@@ -520,6 +520,7 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
         <div class="header-acciones">
             <button class="header-btn" onclick="abrirCierre()">📊 Cierre de Caja</button>
             <button class="header-btn" onclick="verTicketsAbiertos()">📋 Tickets Abiertos</button>
+	    <button class="header-btn" onclick="abrirHistorico()">🗂️ Histórico</button>
         </div>
         <div class="header-info">
             <div id="fecha-hora">--/--/---- --:--</div>
@@ -617,6 +618,17 @@ body { background: #f0f2f5; height: 100vh; overflow: hidden; }
         <div id="cambiar-mesa-lista" class="mesas-grid"></div>
         <div class="modal-acciones" style="margin-top: 15px;">
             <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-cambiar-mesa')" style="grid-column: 1/-1;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL HISTÓRICO TICKETS ========== -->
+<div class="modal-overlay" id="modal-historico">
+    <div class="modal modal-grande">
+        <h2>🗂️ Histórico de Tickets</h2>
+        <div id="historico-lista" style="max-height:60vh;overflow-y:auto;"></div>
+        <div class="modal-acciones">
+            <button class="btn-accion btn-cancelar" onclick="cerrarModal('modal-historico')" style="grid-column:1/-1;">Cerrar</button>
         </div>
     </div>
 </div>
