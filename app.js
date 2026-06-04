@@ -859,77 +859,280 @@ function imprimirTicket(datos) {
 function imprimirTicketHTML(datos) {
     const f = datos.fecha;
     const fechaStr = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
-    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}`;
+    const horaStr = `${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}:${String(f.getSeconds()).padStart(2,'0')}`;
     const esPref = datos.prefactura === true;
     const iv = datos.ivas;
 
     const html = `
 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ticket ${datos.numeroTicket}</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>
 <style>
 @page { size: 80mm auto; margin: 0; }
-body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 4mm; }
+* { box-sizing: border-box; }
+body {
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 12px;
+    width: 80mm;
+    padding: 4mm;
+    color: #000;
+    margin: 0;
+}
+.logo-empresa {
+    text-align: center;
+    margin-bottom: 6px;
+}
+.logo-empresa img {
+    max-width: 55px;
+    height: auto;
+    display: block;
+    margin: 0 auto 4px auto;
+}
 .c { text-align: center; }
 .r { text-align: right; }
+.l { text-align: left; }
 .b { font-weight: bold; }
-.sep { border-top: 1px dashed #000; margin: 4px 0; }
-.dsep { border-top: 2px solid #000; margin: 4px 0; }
-table { width: 100%; border-collapse: collapse; }
-table td { padding: 1px 0; }
-.tit { font-size: 14px; font-weight: bold; }
-.tot { font-size: 16px; font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 5px 0; }
-.pref { background: #ffe; padding: 6px; text-align: center; font-weight: bold; border: 2px dashed #000; margin: 6px 0; }
+.empresa-nombre {
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 2px;
+}
+.empresa-datos {
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+.sep { border-top: 1px dashed #555; margin: 6px 0; }
+.dsep { border-top: 2px solid #000; margin: 6px 0; }
+.info-ticket {
+    width: 100%;
+    font-size: 12px;
+    margin: 4px 0;
+}
+.info-ticket td { padding: 1px 0; vertical-align: top; }
+.info-ticket .lbl { font-weight: bold; width: 40%; }
+.info-ticket .val { text-align: right; }
+
+.tabla-prod {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+}
+.tabla-prod thead td {
+    font-weight: bold;
+    border-bottom: 1px dashed #555;
+    padding: 3px 0;
+    font-size: 11px;
+}
+.tabla-prod tbody td {
+    padding: 3px 0;
+    vertical-align: top;
+    font-size: 11px;
+}
+.col-ud { width: 8%; text-align: left; }
+.col-desc { width: 52%; text-align: left; }
+.col-iva { width: 15%; text-align: right; }
+.col-tot { width: 25%; text-align: right; font-weight: bold; }
+
+.bases {
+    width: 100%;
+    margin-top: 4px;
+    font-size: 11px;
+}
+.bases td { padding: 1px 0; }
+.bases .lbl { text-align: left; }
+.bases .val { text-align: right; }
+
+.total-box {
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+    padding: 6px 0;
+    margin: 6px 0;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+
+.pago-box {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin: 4px 0;
+    font-weight: bold;
+}
+
+.pref-box {
+    background: #f5f5f5;
+    border: 2px dashed #000;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    margin: 6px 0;
+}
+
+.qr-zona {
+    text-align: center;
+    margin: 10px 0 6px 0;
+}
+.qr-zona img {
+    width: 130px !important;
+    height: 130px !important;
+    margin: 0 auto;
+    display: block;
+}
+
+.verifactu-box {
+    border: 1.5px solid #000;
+    padding: 6px;
+    text-align: center;
+    margin: 6px 0;
+    font-size: 11px;
+}
+.verifactu-box .titulo {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+.verifactu-box .hash {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    word-break: break-all;
+    color: #444;
+}
+
+.footer-msg {
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 6px;
+}
+.footer-msg .gracias {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+.footer-empresa {
+    text-align: center;
+    font-size: 11px;
+    margin-top: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
 </style></head><body>
-<div class="c b tit">${EMPRESA.nombre}</div>
-<div class="c">CIF: ${EMPRESA.cif}</div>
-<div class="c">${EMPRESA.direccion}</div>
-<div class="c">Tel: ${EMPRESA.telefono}</div>
-<div class="dsep"></div>
-${esPref ? '<div class="pref">*** PRE-FACTURA ***<br><small>NO ES UN TICKET</small></div>' : ''}
-<table>
-<tr><td>${esPref ? 'Doc:' : 'Ticket:'}</td><td class="r b">${datos.numeroTicket}</td></tr>
-<tr><td>Fecha:</td><td class="r">${fechaStr} ${horaStr}</td></tr>
-<tr><td>Cajero:</td><td class="r">${datos.cajero}</td></tr>
-${datos.mesa ? `<tr><td>Mesa:</td><td class="r b">${datos.mesa}</td></tr>` : ''}
-</table>
+
+<div class="logo-empresa">
+    <img src="${LOGO_URL}" alt="Logo" onerror="this.style.display='none'">
+</div>
+
+<div class="empresa-nombre">${EMPRESA.nombre}</div>
+<div class="empresa-datos">
+    CIF: ${EMPRESA.cif}<br>
+    ${EMPRESA.direccion}<br>
+    Tel: ${EMPRESA.telefono}
+</div>
+
 <div class="sep"></div>
-<table>
-${datos.productos.map(p => `
-<tr><td>${p.cantidad}x ${p.nombre}</td><td class="r">${(p.cantidad*p.precio).toFixed(2)} €</td></tr>
-`).join('')}
+
+${esPref ? '<div class="pref-box">*** PRE-FACTURA ***<br><span style="font-size:10px;">NO ES UN TICKET FISCAL</span></div>' : ''}
+
+<table class="info-ticket">
+    <tr><td class="lbl">${esPref ? 'Documento Nº:' : 'Ticket Nº:'}</td><td class="val b">${datos.numeroTicket}</td></tr>
+    <tr><td class="lbl">Fecha:</td><td class="val">${fechaStr} ${horaStr}</td></tr>
+    <tr><td class="lbl">Cajero:</td><td class="val">${datos.cajero}</td></tr>
+    ${datos.mesa ? `<tr><td class="lbl">Mesa:</td><td class="val b">${datos.mesa}</td></tr>` : ''}
 </table>
+
 <div class="sep"></div>
-<table>
-${iv[10] && iv[10].base > 0 ? `
-<tr><td>Base 10%:</td><td class="r">${iv[10].base.toFixed(2)} €</td></tr>
-<tr><td>Cuota 10%:</td><td class="r">${iv[10].cuota.toFixed(2)} €</td></tr>` : ''}
-${iv[21] && iv[21].base > 0 ? `
-<tr><td>Base 21%:</td><td class="r">${iv[21].base.toFixed(2)} €</td></tr>
-<tr><td>Cuota 21%:</td><td class="r">${iv[21].cuota.toFixed(2)} €</td></tr>` : ''}
+
+<table class="tabla-prod">
+    <thead>
+        <tr>
+            <td class="col-ud">Ud</td>
+            <td class="col-desc">Descripción</td>
+            <td class="col-iva">IVA</td>
+            <td class="col-tot">Total</td>
+        </tr>
+    </thead>
+    <tbody>
+        ${datos.productos.map(p => `
+            <tr>
+                <td class="col-ud">${p.cantidad}</td>
+                <td class="col-desc">${p.nombre}</td>
+                <td class="col-iva">${p.iva}%</td>
+                <td class="col-tot">${(p.cantidad*p.precio).toFixed(2)}</td>
+            </tr>
+        `).join('')}
+    </tbody>
 </table>
-<table><tr class="tot"><td>TOTAL:</td><td class="r">${datos.total.toFixed(2)} €</td></tr></table>
-<table><tr><td>Pago:</td><td class="r b">${datos.formaPago}</td></tr></table>
+
+<div class="sep"></div>
+
+<table class="bases">
+    ${iv[10] && iv[10].base > 0 ? `
+    <tr><td class="lbl">Base IVA 10%:</td><td class="val">${iv[10].base.toFixed(2)} €</td></tr>
+    <tr><td class="lbl">Cuota IVA 10%:</td><td class="val">${iv[10].cuota.toFixed(2)} €</td></tr>` : ''}
+    ${iv[21] && iv[21].base > 0 ? `
+    <tr><td class="lbl">Base IVA 21%:</td><td class="val">${iv[21].base.toFixed(2)} €</td></tr>
+    <tr><td class="lbl">Cuota IVA 21%:</td><td class="val">${iv[21].cuota.toFixed(2)} €</td></tr>` : ''}
+</table>
+
+<div class="total-box">
+    <span>TOTAL:</span>
+    <span>${datos.total.toFixed(2)} €</span>
+</div>
+
+<div class="pago-box">
+    <span>Forma de pago:</span>
+    <span>${datos.formaPago}</span>
+</div>
+
 ${!esPref && datos.hashVerifactu ? `
 <div class="sep"></div>
-<div class="c b">VERI*FACTU</div>
-<div class="c" style="font-size:9px;">Hash: ${datos.hashVerifactu.substring(0,20)}...</div>
-<div id="qr-cont" class="c" style="margin:5px 0;"></div>
+<div class="qr-zona">
+    <div id="qr-cont"></div>
+</div>
+<div class="verifactu-box">
+    <div class="titulo">Factura verificable VERI*FACTU</div>
+    <div class="hash">Hash: ${datos.hashVerifactu.substring(0, 20)}...</div>
+</div>
 ` : ''}
+
 <div class="sep"></div>
-<div class="c">${esPref ? 'Documento informativo<br>Solicite ticket al pagar' : 'Gracies! Gracias!<br>Conserve este ticket'}</div>
-${!esPref && datos.hashVerifactu ? `
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>
+
+<div class="footer-msg">
+    ${esPref ? `
+        <div class="gracias">Documento informativo</div>
+        Solicite ticket al pagar
+    ` : `
+        <div class="gracias">¡Gracias por su visita!</div>
+        Moltes gràcies!<br><br>
+        Conserve este ticket<br>
+        para cualquier reclamación
+    `}
+</div>
+
+<div class="footer-empresa">${EMPRESA.nombre}</div>
+
+${!esPref && datos.hashVerifactu && datos.urlVerifactu ? `
 <script>
-try {
-    var qr = qrcode(0, 'M');
-    qr.addData(${JSON.stringify(datos.urlVerifactu || '')});
-    qr.make();
-    document.getElementById('qr-cont').innerHTML = qr.createImgTag(3, 4);
-} catch(e) { console.error(e); }
+window.addEventListener('load', function() {
+    try {
+        var qr = qrcode(0, 'M');
+        qr.addData(${JSON.stringify(datos.urlVerifactu)});
+        qr.make();
+        document.getElementById('qr-cont').innerHTML = qr.createImgTag(4, 0);
+        var img = document.querySelector('#qr-cont img');
+        if (img) { img.style.width = '130px'; img.style.height = '130px'; }
+    } catch(e) { console.error('Error QR:', e); }
+});
 <\/script>
 ` : ''}
+
 </body></html>`;
 
-    const ventana = window.open('', '_blank', 'width=400,height=700');
+    const ventana = window.open('', '_blank', 'width=400,height=750');
     if (!ventana) {
         alert('⚠️ Permite las ventanas emergentes en el navegador');
         return;
@@ -943,7 +1146,7 @@ try {
             ventana.print();
         } catch (e) { console.error(e); }
         setTimeout(() => { try { ventana.close(); } catch(e){} }, 2000);
-    }, 800);
+    }, 1200); // Más tiempo para que cargue el logo y QR
 }
 
 // ============== IMPRESIÓN RAWBT (MÓVIL) ==============
