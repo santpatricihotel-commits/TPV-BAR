@@ -839,8 +839,8 @@ function enviarAGoogleSheets(datos) {
 
 // ============== IMPRESIÓN TICKET (PRINCIPAL) ==============
 function imprimirTicket(datos) {
-    // Guardar en histórico (solo si NO es prefactura)
-    if (!datos.prefactura) {
+    // Guardar en histórico (solo si NO es prefactura y NO es una reimpresión/copia)
+    if (!datos.prefactura && !datos.esCopia) {
         guardarEnHistorico(datos);
     }
 
@@ -851,11 +851,8 @@ function imprimirTicket(datos) {
         const texto = construirTextoTicket(datos);
         enviarARawBT(texto);
     } else {
-        // 💻 PC → ventana HTML con impresión
-        function imprimirTicket(datos) {
-    // Guardar en histórico (solo si NO es prefactura)
-    if (!datos.prefactura && !datos.esCopia) {
-        guardarEnHistorico(datos);
+        // 💻 PC → ventana HTML con impresión vía iframe oculto
+        imprimirTicketHTML(datos);
     }
 }
 
