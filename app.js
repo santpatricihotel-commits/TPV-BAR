@@ -735,32 +735,27 @@ function confirmarCierre() {
     const stats = calcularEstadisticasCierre();
     const fechaCierre = new Date();
     
-    // Imprimir cierre
-    imprimirCierre(stats, fechaCierre);
-    
-    // Enviar a Sheets
+    // 🔑 Enviar a Sheets ANTES de imprimir (en tablet la impresión navega y cancelaría el envío)
     if (GOOGLE_SHEETS_URL && GOOGLE_SHEETS_URL.startsWith('https://')) {
-        fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                tipo: 'cierre',
-                fechaCierre: fechaCierre.toISOString(),
-                fechaApertura: fechaApertura,
-                numTickets: stats.numTickets,
-                total: +stats.total.toFixed(2),
-                efectivo: +stats.efectivo.toFixed(2),
-                tarjeta: +stats.tarjeta.toFixed(2),
-                bizum: +stats.bizum.toFixed(2),
-                transferencia: +stats.transferencia.toFixed(2),
-                base10: +stats.base10.toFixed(2),
-                cuota10: +stats.cuota10.toFixed(2),
-                base21: +stats.base21.toFixed(2),
-                cuota21: +stats.cuota21.toFixed(2)
-            })
+        enviarBeacon({
+            tipo: 'cierre',
+            fechaCierre: fechaCierre.toISOString(),
+            fechaApertura: fechaApertura,
+            numTickets: stats.numTickets,
+            total: +stats.total.toFixed(2),
+            efectivo: +stats.efectivo.toFixed(2),
+            tarjeta: +stats.tarjeta.toFixed(2),
+            bizum: +stats.bizum.toFixed(2),
+            transferencia: +stats.transferencia.toFixed(2),
+            base10: +stats.base10.toFixed(2),
+            cuota10: +stats.cuota10.toFixed(2),
+            base21: +stats.base21.toFixed(2),
+            cuota21: +stats.cuota21.toFixed(2)
         });
     }
+
+    // Imprimir cierre (después del envío)
+    imprimirCierre(stats, fechaCierre);
     
     // Reset
     ventasDia = [];
@@ -797,13 +792,32 @@ function enviarAGoogleSheets(datos) {
         total: +datos.total.toFixed(2)
     };
 
+    enviarBeacon(payload);
+}
+
+// 🔑 Envío robusto que sobrevive a la navegación a rawbt: (tablet/móvil)
+function enviarBeacon(payload) {
+    const body = JSON.stringify(payload);
+    // 1º intento: sendBeacon (no se cancela aunque cambiemos de página)
+    try {
+        if (navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+            const ok = navigator.sendBeacon(GOOGLE_SHEETS_URL, blob);
+            if (ok) return;
+        }
+    } catch (e) {
+        console.error('sendBeacon falló, uso fetch:', e);
+    }
+    // 2º intento (fallback): fetch con keepalive
     fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        body: body,
+        keepalive: true
     }).catch(err => console.error('Error Sheets:', err));
 }
+
 
 // ============== IMPRESIÓN TICKET (PRINCIPAL) ==============
 function imprimirTicket(datos) {
