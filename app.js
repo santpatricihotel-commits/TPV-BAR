@@ -77,7 +77,6 @@ let numeroTicket = parseInt(localStorage.getItem('tpv_numeroTicket') || '1');
 let ticketsAbiertos = JSON.parse(localStorage.getItem('tpv_ticketsAbiertos') || '{}');
 let ventasDia = JSON.parse(localStorage.getItem('tpv_ventasDia') || '[]');
 let fechaApertura = localStorage.getItem('tpv_fechaApertura') || new Date().toISOString();
-let ultimoHash = localStorage.getItem('tpv_ultimoHash') || '0';
 
 if (!localStorage.getItem('tpv_fechaApertura')) {
     localStorage.setItem('tpv_fechaApertura', fechaApertura);
@@ -185,17 +184,6 @@ function construirTextoTicket(datos) {
     t += rbtLinea('=') + '\n';
     t += rbtFila('Pago:', datos.formaPago) + '\n';
 
-    if (!esPref && datos.hashVerifactu) {
-        t += rbtLinea() + '\n';
-        t += rbtCentrar('VERI*FACTU') + '\n';
-        t += 'Hash: ' + datos.hashVerifactu.substring(0, 20) + '\n';
-        if (datos.urlVerifactu) {
-            t += datos.urlVerifactu.substring(0, ANCHO_TICKET) + '\n';
-            if (datos.urlVerifactu.length > ANCHO_TICKET) {
-                t += datos.urlVerifactu.substring(ANCHO_TICKET, ANCHO_TICKET*2) + '\n';
-            }
-        }
-    }
 
     t += rbtLinea() + '\n';
     if (esPref) {
@@ -602,13 +590,6 @@ async function confirmarCobro() {
     const numTicket = `${EMPRESA.serie}-${String(fecha.getFullYear()).slice(2)}${String(fecha.getMonth()+1).padStart(2,'0')}-${String(numeroTicket).padStart(5,'0')}`;
     const { ivas, total } = calcularTotales();
 
-    // === VERI*FACTU: HASH ENCADENADO ===
-    const datosHash = `${numTicket}|${fecha.toISOString()}|${EMPRESA.cif}|${total.toFixed(2)}|${ultimoHash}`;
-    const hashActual = await sha256(datosHash);
-    
-    // === URL Veri*Factu para el QR ===
-    const urlVerifactu = `https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=${EMPRESA.cif}&numserie=${encodeURIComponent(numTicket)}&fecha=${fecha.toISOString().slice(0,10).split('-').reverse().join('-')}&importe=${total.toFixed(2)}`;
-
     const datosTicket = {
         numeroTicket: numTicket,
         fecha: fecha,
@@ -616,10 +597,7 @@ async function confirmarCobro() {
         mesa: nombreMesa(mesaActiva),
         productos: [...ticket],
         formaPago: formaPagoSeleccionada,
-        ivas, total,
-        hashVerifactu: hashActual,
-        hashAnterior: ultimoHash,
-        urlVerifactu: urlVerifactu
+        ivas, total
     };
 
     // Guardar venta del día
@@ -632,17 +610,13 @@ async function confirmarCobro() {
         cuota10: ivas[10].cuota,
         base21: ivas[21].base,
         cuota21: ivas[21].cuota,
-        total: total,
-        hash: hashActual
+        total: total
     });
     localStorage.setItem('tpv_ventasDia', JSON.stringify(ventasDia));
-    
-    ultimoHash = hashActual;
-    localStorage.setItem('tpv_ultimoHash', ultimoHash);
 
-    // Imprimir
-    imprimirTicket(datosTicket);
+    // 1º enviar a Sheets, 2º imprimir (así no se pierde el envío en el móvil)
     enviarAGoogleSheets(datosTicket);
+    imprimirTicket(datosTicket);
 
     // Limpiar
     numeroTicket++;
@@ -651,17 +625,12 @@ async function confirmarCobro() {
         delete ticketsAbiertos[mesaActiva];
         guardarAbiertosLS();
     }
-    
+
     ticket = [];
     cerrarModal('modal-cobro');
     mostrarMesas();
 }
 
-// ============== HASH SHA-256 ==============
-async function sha256(text) {
-    const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
 // ============== CIERRE DE CAJA ==============
 function abrirCierre() {
@@ -825,8 +794,7 @@ function enviarAGoogleSheets(datos) {
         cuota10: +datos.ivas[10].cuota.toFixed(2),
         base21: +datos.ivas[21].base.toFixed(2),
         cuota21: +datos.ivas[21].cuota.toFixed(2),
-        total: +datos.total.toFixed(2),
-        hashVerifactu: datos.hashVerifactu
+        total: +datos.total.toFixed(2)
     };
 
     fetch(GOOGLE_SHEETS_URL, {
@@ -865,7 +833,6 @@ function imprimirTicketHTML(datos) {
 
     const html = `
 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ticket ${datos.numeroTicket}</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>
 <style>
 @page { size: 80mm auto; margin: 0; }
 * { box-sizing: border-box; }
@@ -1088,16 +1055,6 @@ ${esPref ? '<div class="pref-box">*** PRE-FACTURA ***<br><span style="font-size:
     <span>${datos.formaPago}</span>
 </div>
 
-${!esPref && datos.hashVerifactu ? `
-<div class="sep"></div>
-<div class="qr-zona">
-    <div id="qr-cont"></div>
-</div>
-<div class="verifactu-box">
-    <div class="titulo">Factura verificable VERI*FACTU</div>
-    <div class="hash">Hash: ${datos.hashVerifactu.substring(0, 20)}...</div>
-</div>
-` : ''}
 
 <div class="sep"></div>
 
@@ -1114,21 +1071,6 @@ ${!esPref && datos.hashVerifactu ? `
 </div>
 
 <div class="footer-empresa">${EMPRESA.nombre}</div>
-
-${!esPref && datos.hashVerifactu && datos.urlVerifactu ? `
-<script>
-window.addEventListener('load', function() {
-    try {
-        var qr = qrcode(0, 'M');
-        qr.addData(${JSON.stringify(datos.urlVerifactu)});
-        qr.make();
-        document.getElementById('qr-cont').innerHTML = qr.createImgTag(4, 0);
-        var img = document.querySelector('#qr-cont img');
-        if (img) { img.style.width = '130px'; img.style.height = '130px'; }
-    } catch(e) { console.error('Error QR:', e); }
-});
-<\/script>
-` : ''}
 
 </body></html>`;
 
