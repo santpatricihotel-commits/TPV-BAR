@@ -586,10 +586,6 @@ function seleccionarPago(forma) {
 async function confirmarCobro() {
     if (!formaPagoSeleccionada) return;
 
-    // Evita doble pulsación durante el envío
-    const btnConf = document.getElementById('btn-confirmar-cobro');
-    if (btnConf) btnConf.disabled = true;
-
     const fecha = new Date();
     const numTicket = `${EMPRESA.serie}-${String(fecha.getFullYear()).slice(2)}${String(fecha.getMonth()+1).padStart(2,'0')}-${String(numeroTicket).padStart(5,'0')}`;
     const { ivas, total } = calcularTotales();
@@ -618,13 +614,8 @@ async function confirmarCobro() {
     });
     localStorage.setItem('tpv_ventasDia', JSON.stringify(ventasDia));
 
-    // 1º ESPERAR a que Sheets reciba los datos, 2º imprimir (imprimir navega y cancelaría el envío)
-    try {
-        await enviarAGoogleSheets(datosTicket);
-    } catch (e) {
-        console.error('Fallo envío Sheets:', e);
-    }
-
+    // 1º enviar a Sheets, 2º imprimir (así no se pierde el envío en el móvil)
+    enviarAGoogleSheets(datosTicket);
     imprimirTicket(datosTicket);
 
     // Limpiar
@@ -639,6 +630,7 @@ async function confirmarCobro() {
     cerrarModal('modal-cobro');
     mostrarMesas();
 }
+
 
 // ============== CIERRE DE CAJA ==============
 function abrirCierre() {
@@ -733,56 +725,51 @@ function calcularEstadisticasCierre() {
     };
 }
 
-async function confirmarCierre() {
+function confirmarCierre() {
     if (ventasDia.length === 0) {
         cerrarModal('modal-cierre');
         return;
     }
     if (!confirm('⚠️ Esto cerrará el día actual y reseteará los contadores diarios. ¿Continuar?')) return;
-
+    
     const stats = calcularEstadisticasCierre();
     const fechaCierre = new Date();
-
-    // Enviar a Sheets y ESPERAR antes de imprimir
+    
+    // 🔑 Enviar a Sheets ANTES de imprimir (en tablet la impresión navega y cancelaría el envío)
     if (GOOGLE_SHEETS_URL && GOOGLE_SHEETS_URL.startsWith('https://')) {
-        try {
-            await enviarBeacon({
-                tipo: 'cierre',
-                fechaCierre: fechaCierre.toISOString(),
-                fechaApertura: fechaApertura,
-                numTickets: stats.numTickets,
-                total: +stats.total.toFixed(2),
-                efectivo: +stats.efectivo.toFixed(2),
-                tarjeta: +stats.tarjeta.toFixed(2),
-                bizum: +stats.bizum.toFixed(2),
-                transferencia: +stats.transferencia.toFixed(2),
-                base10: +stats.base10.toFixed(2),
-                cuota10: +stats.cuota10.toFixed(2),
-                base21: +stats.base21.toFixed(2),
-                cuota21: +stats.cuota21.toFixed(2)
-            });
-        } catch (e) {
-            console.error('Fallo envío cierre Sheets:', e);
-        }
+        enviarBeacon({
+            tipo: 'cierre',
+            fechaCierre: fechaCierre.toISOString(),
+            fechaApertura: fechaApertura,
+            numTickets: stats.numTickets,
+            total: +stats.total.toFixed(2),
+            efectivo: +stats.efectivo.toFixed(2),
+            tarjeta: +stats.tarjeta.toFixed(2),
+            bizum: +stats.bizum.toFixed(2),
+            transferencia: +stats.transferencia.toFixed(2),
+            base10: +stats.base10.toFixed(2),
+            cuota10: +stats.cuota10.toFixed(2),
+            base21: +stats.base21.toFixed(2),
+            cuota21: +stats.cuota21.toFixed(2)
+        });
     }
 
+    // Imprimir cierre (después del envío)
     imprimirCierre(stats, fechaCierre);
-
+    
     // Reset
     ventasDia = [];
     fechaApertura = new Date().toISOString();
     localStorage.setItem('tpv_ventasDia', '[]');
     localStorage.setItem('tpv_fechaApertura', fechaApertura);
-
+    
     cerrarModal('modal-cierre');
     alert('✅ Cierre realizado correctamente.');
 }
 
-// ============== ENVÍO A GOOGLE SHEETS  ==============
+// ============== ENVÍO A GOOGLE SHEETS ==============
 function enviarAGoogleSheets(datos) {
-    if (!GOOGLE_SHEETS_URL || !GOOGLE_SHEETS_URL.startsWith('https://')) {
-        return Promise.resolve();
-    }
+    if (!GOOGLE_SHEETS_URL || !GOOGLE_SHEETS_URL.startsWith('https://')) return;
 
     const payload = {
         tipo: 'venta',
@@ -802,36 +789,33 @@ function enviarAGoogleSheets(datos) {
         cuota10: +datos.ivas[10].cuota.toFixed(2),
         base21: +datos.ivas[21].base.toFixed(2),
         cuota21: +datos.ivas[21].cuota.toFixed(2),
-        total: +datos.total.toFixed(2),
-        hashVerifactu: datos.hashVerifactu || ''   // evita "undefined" en la hoja
+        total: +datos.total.toFixed(2)
     };
 
-    return enviarBeacon(payload);
+    enviarBeacon(payload);
 }
 
-// 🔑 Envío con fetch que SÍ sigue la redirección 302 de Apps Script.
-// Devuelve una promesa: hay que ESPERARLA antes de navegar a rawbt: (imprimir).
-async function enviarBeacon(payload) {
+// 🔑 Envío robusto que sobrevive a la navegación a rawbt: (tablet/móvil)
+function enviarBeacon(payload) {
     const body = JSON.stringify(payload);
+    // 1º intento: sendBeacon (no se cancela aunque cambiemos de página)
     try {
-        await fetch(GOOGLE_SHEETS_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            redirect: 'follow',                 // <-- clave: sigue el 302 a googleusercontent
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: body,
-            keepalive: true
-        });
-    } catch (err) {
-        console.error('Error enviando a Sheets, intento sendBeacon:', err);
-        // Último recurso (poco fiable por la redirección, pero mejor que nada)
-        try {
-            if (navigator.sendBeacon) {
-                const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
-                navigator.sendBeacon(GOOGLE_SHEETS_URL, blob);
-            }
-        } catch (e) { console.error('sendBeacon también falló:', e); }
+        if (navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+            const ok = navigator.sendBeacon(GOOGLE_SHEETS_URL, blob);
+            if (ok) return;
+        }
+    } catch (e) {
+        console.error('sendBeacon falló, uso fetch:', e);
     }
+    // 2º intento (fallback): fetch con keepalive
+    fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: body,
+        keepalive: true
+    }).catch(err => console.error('Error Sheets:', err));
 }
 
 
