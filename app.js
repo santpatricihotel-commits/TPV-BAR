@@ -47,6 +47,7 @@ const PRODUCTOS = [
     { id: 254, cat: "Tapas", nombre: "Ensalada de la Huerta",       precio: 11.00,  iva: 10 },
     { id: 255, cat: "Tapas", nombre: "Ensalada Sant Patrici",       precio: 12.00,  iva: 10 },
     { id: 256, cat: "Tapas", nombre: "Ensalada de Pera y Queso Curado",  precio: 11.00,  iva: 10 },
+    { id: 257, cat: "Tapas", nombre: "Vaso de Gazpacho Tradicional",  precio: 4.50,  iva: 10 }
     { id: 300, cat: "Cervezas", nombre: "Estrella Galicia 0.0",     precio: 4.00,  iva: 10 },
     { id: 301, cat: "Cervezas", nombre: "Estrella Galicia",         precio: 4.50,  iva: 10 },
     { id: 302, cat: "Cervezas", nombre: "Grahame Pearce Larger",    precio: 4.50,  iva: 10 },
