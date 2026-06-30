@@ -40,7 +40,7 @@ const PRODUCTOS = [
     { id: 206, cat: "Snacks", nombre: "Berberechos al natural",     precio: 15.40, iva: 10 },
     { id: 207, cat: "Snacks", nombre: "Sandwich de Jamón y Queso",  precio: 8.50, iva: 10 },
     { id: 208, cat: "Snacks", nombre: "Sandwich de Sobrasada,Queso y Miel",  precio: 9.50, iva: 10 },
-    { id: 209, cat: "Snacks", nombre: "Vaso Gazpacho",               precio: 4.50,  iva: 10 },
+    { id: 209, cat: "Snacks", nombre: "Vaso de Gazpacho",           precio: 4.50,  iva: 10 },
     { id: 250, cat: "Tapas", nombre: "Pan cristal con tomate",      precio: 6.00,  iva: 10 },
     { id: 251, cat: "Tapas", nombre: "Croquetas de Jamón Ibérico",  precio: 9.00,  iva: 10 },
     { id: 252, cat: "Tapas", nombre: "Croquetas de Boletus y Trufa",  precio: 9.00,  iva: 10 },
