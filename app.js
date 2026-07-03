@@ -60,6 +60,8 @@ const PRODUCTOS = [
     { id: 500, cat: "Vinos Copa", nombre: "Es Moll Rosado (copa)",      precio: 4.50, iva: 10 },
     { id: 501, cat: "Vinos Copa", nombre: "Es Rupit Blanco (copa)",     precio: 5.00, iva: 10 },
     { id: 502, cat: "Vinos Copa", nombre: "Sa Vermella Tinto (copa)",   precio: 6.00, iva: 10 },
+    { id: 503, cat: "Vinos Copa", nombre: "Somni Blanco (copa)",        precio: 6.00, iva: 10 },
+    { id: 599, cat: "Vinos Botella", nombre: "Somni Blanco",            precio: 25.00, iva: 10 },
     { id: 600, cat: "Vinos Botella", nombre: "Es Moll Rosado",          precio: 18.00, iva: 10 },
     { id: 601, cat: "Vinos Botella", nombre: "Es Rupit Blanco",         precio: 19.00, iva: 10 },
     { id: 602, cat: "Vinos Botella", nombre: "Sa Vermella Tinto",       precio: 22.00, iva: 10 },
