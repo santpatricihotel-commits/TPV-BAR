@@ -19,14 +19,14 @@ const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzzhsfTlw8wGK
 // 🖼️ LOGO DE LA EMPRESA (para el ticket)
 const LOGO_URL = "https://santpatrici.es/wp-content/uploads/sites/98/2026/02/Logo-8.png";
 
-// 🪑 CONFIGURACIÓN MESAS
+// 🪑 CONFIGURACIÓN DE LAS MESAS
 const CONFIG_MESAS = {
     salon: 12,         // Número de mesas en salón (T1...T12)
     barra: 4,          // Tabures en barra (B1...B4)
     paraLlevar: true   // Habilitar tickets "Para llevar"
 };
 
-// ============== CATÁLOGO DE PRODUCTOS ==============
+// ============== CATÁLOGO PRODUCTOS ==============
 const PRODUCTOS = [
     { id: 100, cat: "Tablas", nombre: "Tabla quesos Sant Patrici", precio: 16.00, iva: 10 },
     { id: 101, cat: "Tablas", nombre: "Tabla jamón ibérico",       precio: 18.00, iva: 10 },
